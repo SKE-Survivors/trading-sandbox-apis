@@ -109,3 +109,8 @@
     "trigger_id": 0,
   }
   ```
+
+### Info
+
+- GET: `/api/info/pairs`
+- GET: `/api/info/orders`

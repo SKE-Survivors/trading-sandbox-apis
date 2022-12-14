@@ -40,6 +40,12 @@ class DatabaseHandler:
             order = None
         return order
 
+    def orders(self):
+        orders = []
+        for order in Order.objects():
+            orders.append(order.info())
+        return orders
+
     def find_trigger(self, id) -> Trigger:
         try:
             trigger = Trigger.objects.get(id=id)
