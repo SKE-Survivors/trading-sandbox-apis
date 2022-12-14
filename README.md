@@ -86,3 +86,26 @@
     "order_id": 0,
   }
   ```
+
+- POST: `/api/trading/trigger?email=[email]&token=[token]` (create trigger, and its order as draft)
+
+  ```json
+  body = {
+    "type": "",
+    "pair_symbol": "",
+    "input_token": "",
+    "input_amount": 0,
+    "output_token": "",
+    "output_amount": 0,
+    "stop_price": 0,
+    "limit_price": 0
+  }
+  ```
+
+- DELETE: `/api/trading/trigger?email=[email]&token=[token]` (delete trigger, and its non-finished order)
+
+  ```json
+  body = {
+    "trigger_id": 0,
+  }
+  ```

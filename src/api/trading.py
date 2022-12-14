@@ -54,7 +54,10 @@ def order():
         try:
             user.cancel_order(order)
         except Exception as err:
-            body = {"STATUS": "FAILED", "MESSAGE": f"Cancel order not allow: {err}"}
+            body = {
+                "STATUS": "FAILED",
+                "MESSAGE": f"Cancel order not allow: {err}"
+            }
             return build_response(status_code=400, body=body)
 
         body = {"STATUS": "SUCCESS", "MESSAGE": "Cancel order Successfully"}
@@ -135,4 +138,114 @@ def order():
                 return build_response(status_code=400, body=body)
 
         body = {"STATUS": "SUCCESS", "MESSAGE": "Create order successfully"}
+        return build_response(status_code=201, body=body)
+
+
+@trading_endpoint.route("/trigger", methods=["POST", "DELETE"])
+@cross_origin()
+def trigger():
+    email = request.args.get("email")
+    token = request.args.get("token")
+
+    if not token:
+        body = {'STATUS': 'FAILED', 'MESSAGE': 'Missing argument: token'}
+        return build_response(status_code=400, body=body)
+
+    user = dbh.find_user(email)
+    if not user:
+        body = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
+        return build_response(status_code=400, body=body)
+
+    if not sh.in_session(email, token):
+        body = {"STATUS": "FAILED", "MESSAGE": f"Permission denied"}
+        return build_response(status_code=400, body=body)
+
+    if request.method == "DELETE":
+        try:
+            data = request.json
+            trigger_id = data["trigger_id"]
+        except Exception as err:
+            return build_response(status_code=400, err=err)
+
+        if not trigger_id:
+            body = {"STATUS": "FAILED", "MESSAGE": f"trigger_id is required"}
+            return build_response(status_code=400, body=body)
+
+        trigger = dbh.find_trigger(trigger_id)
+        if not trigger:
+            body = {"STATUS": "FAILED", "MESSAGE": f"Trigger does not exist"}
+            return build_response(status_code=400, body=body)
+
+        try:
+            user.cancel_trigger(trigger)
+        except Exception as err:
+            body = {
+                "STATUS": "FAILED",
+                "MESSAGE": f"Cancel trigger not allow: {err}"
+            }
+            return build_response(status_code=400, body=body)
+
+        body = {"STATUS": "SUCCESS", "MESSAGE": "Cancel trigger Successfully"}
+        return build_response(status_code=201, body=body)
+
+    if request.method == "POST":
+        try:
+            data = request.json
+            order_type = data["type"]
+            pair_symbol = data["pair_symbol"]
+            input_token = data["input_token"]
+            input_amount = data["input_amount"]
+            output_token = data["output_token"]
+            stop_price = data["stop_price"]
+            limit_price = data["limit_price"]
+        except Exception as err:
+            return build_response(status_code=400, err=err)
+
+        if not order_type:
+            body = {"STATUS": "FAILED", "MESSAGE": f"type is required"}
+            return build_response(status_code=400, body=body)
+        if not pair_symbol:
+            body = {"STATUS": "FAILED", "MESSAGE": f"pair_symbol is required"}
+            return build_response(status_code=400, body=body)
+        if not input_token:
+            body = {"STATUS": "FAILED", "MESSAGE": f"input_token is required"}
+            return build_response(status_code=400, body=body)
+        if not input_amount:
+            body = {"STATUS": "FAILED", "MESSAGE": f"input_amount is required"}
+            return build_response(status_code=400, body=body)
+        if not output_token:
+            body = {"STATUS": "FAILED", "MESSAGE": f"output_token is required"}
+            return build_response(status_code=400, body=body)
+        if not stop_price:
+            body = {"STATUS": "FAILED", "MESSAGE": f"stop_price is required"}
+            return build_response(status_code=400, body=body)
+        if not limit_price:
+            body = {"STATUS": "FAILED", "MESSAGE": f"limit_price is required"}
+            return build_response(status_code=400, body=body)
+
+        try:
+            if not user.check_balance(input_token, input_amount):
+                body = {
+                    "STATUS": "FAILED",
+                    "MESSAGE": f"user balance not enough to create this order"
+                }
+                return build_response(status_code=400, body=body)
+
+            trigger = user.create_trigger(
+                order_type,
+                pair_symbol,
+                input_token,
+                input_amount,
+                output_token,
+                stop_price,
+                limit_price,
+            )
+        except errors.ValidationError as err:
+            body = {
+                "STATUS": "FAILED",
+                "MESSAGE": f"Create trigger failed: {err}"
+            }
+            return build_response(status_code=400, body=body)
+
+        body = {"STATUS": "SUCCESS", "MESSAGE": "Create trigger successfully"}
         return build_response(status_code=201, body=body)

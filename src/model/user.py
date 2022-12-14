@@ -1,7 +1,7 @@
 from mongoengine import connect, Document, StringField, EmailField, DictField, BinaryField
 from decouple import config
 from model.order import Order
-from model.tigger import Tigger
+from model.trigger import Trigger
 
 
 class User(Document):
@@ -23,8 +23,14 @@ class User(Document):
             "username": self.username,
             "password": self.password,
             "wallet": self.wallet,
-            "orders": self.orders(),
         }
+
+    def view(self):
+        data = self.info()
+        data["available_wallet"] = self.available_wallet()
+        data["orders"] = self.orders()
+        data["triggers"] = self.triggers()
+        return data
 
     def update(self, **kwargs):
         result = super().update(**kwargs)
@@ -37,7 +43,7 @@ class User(Document):
         for order in Order.objects(user_email=self.email):
             order.delete()
 
-        for trigger in Tigger.objects(user_email=self.email):
+        for trigger in Trigger.objects(user_email=self.email):
             trigger.delete()
 
         print(f"Deleted user: {self.email}")
@@ -49,20 +55,21 @@ class User(Document):
             orders.append(order.info())
         return orders
 
-    def tiggers(self):
-        tiggers = []
-        for tigger in Tigger.objects(user_email=self.email):
-            tigger.append(tigger.info())
-        return tiggers
+    def triggers(self):
+        triggers = []
+        for trigger in Trigger.objects(user_email=self.email):
+            triggers.append(trigger.info())
+        return triggers
 
     def available_wallet(self):
         active_status = ['active', 'draft']
         active_orders = list(
             filter(lambda d: d['status'] in active_status, self.orders()))
 
-        available_wallet = self.wallet
+        available_wallet = self.wallet.copy()
         for order in active_orders:
             available_wallet[order['input_token']] -= order['input_amount']
+            
         return available_wallet
 
     def check_balance(self, token_symbol, amount):
@@ -96,6 +103,31 @@ class User(Document):
     def cancel_order(self, order: Order):
         order.cancel(self.email)
         print(f"Canceled order id: {order.id}, for user: {self.email}")
+
+    def create_trigger(self, type, pair_symbol, input_token, input_amount,
+                       output_token, stop_price, limit_price):
+        order = self.create_order(status="draft",
+                                  type=type,
+                                  pair_symbol=pair_symbol,
+                                  input_token=input_token,
+                                  input_amount=input_amount,
+                                  output_token=output_token,
+                                  output_amount=input_amount *
+                                  limit_price).save()
+
+        trigger = Trigger(
+            user_email=self.email,
+            pair_symbol=pair_symbol,
+            output_token=output_token,
+            order_id=order.id,
+            stop_price=stop_price,
+        ).save()
+        print(f"Added trigger id: {trigger.id}, for user: {self.email}")
+
+    # this mean delete trigger
+    def cancel_trigger(self, trigger: Trigger):
+        trigger.cancel(self.email)
+        print(f"Canceled order id: {trigger.id}, for user: {self.email}")
 
 
 # ! temporary: just for testing

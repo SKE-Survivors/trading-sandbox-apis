@@ -2,6 +2,7 @@ from mongoengine import connect
 from decouple import config
 from model.user import User
 from model.order import Order
+from model.trigger import Trigger
 
 
 class DatabaseHandler:
@@ -38,3 +39,10 @@ class DatabaseHandler:
         except Order.DoesNotExist:
             order = None
         return order
+
+    def find_trigger(self, id) -> Trigger:
+        try:
+            trigger = Trigger.objects.get(id=id)
+        except Trigger.DoesNotExist:
+            trigger = None
+        return trigger

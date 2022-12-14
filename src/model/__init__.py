@@ -1,3 +1,3 @@
 from model.order import Order
-from model.tigger import Tigger
+from model.trigger import Trigger
 from model.user import User

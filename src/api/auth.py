@@ -142,7 +142,7 @@ def user():
 
     if request.method == "GET":
         email = user.email
-        data = user.info()
+        data = user.view()
         data.pop('password', None)
         body = {
             "STATUS": "SUCCESS",

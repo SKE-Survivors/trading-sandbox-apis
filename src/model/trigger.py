@@ -2,9 +2,10 @@ import datetime
 
 from mongoengine import connect, Document, SequenceField, EmailField, IntField, DateTimeField, StringField, FloatField
 from decouple import config
+from model.order import Order
 
 
-class Tigger(Document):
+class Trigger(Document):
     id = SequenceField(primary_key=True)
     user_email = EmailField(required=True)
     order_id = IntField(required=True, min_value=1)
@@ -24,6 +25,27 @@ class Tigger(Document):
             "stop_price": self.stop_price,
         }
 
+    def order(self):
+        return Order.objects.get(id=self.order_id)
+
+    # for service to call only
+    def trigger(self):
+        order = self.order()
+        if order.status == "draft":
+            order.update(status="active")
+
+        print(f"trigger id: {self.id}, has been trigger")
+
+    def cancel(self, user_email):
+        if self.user_email != user_email:
+            raise Exception(f"Trigger does not owned by user: {user_email}")
+
+        order = self.order()
+        if order.status != "finished":
+            order.delete()
+
+        return self.delete()
+
 
 # ! temporary: tools to add sections
 if __name__ == '__main__':
@@ -36,7 +58,7 @@ if __name__ == '__main__':
         port=int(config('DB_PORT')),
     )
 
-    Tigger(
+    Trigger(
         user_email="first@gmail.com",
         pair_symbol="btc-usdt",
         output_token="usdt",
