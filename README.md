@@ -25,7 +25,7 @@
 
   - POST: `/api/auth/signup`
 
-    ```py
+    ```json
     body = {
       "email": "",
       "username": "",
@@ -36,7 +36,7 @@
 
   - POST: `/api/auth/login`
 
-    ```py
+    ```json
     body = {
       "email": "",
       "password": "",
@@ -53,7 +53,7 @@
 - GET: `/api/auth/user?email=[email]`
 - PUT: `/api/auth/user?email=[email]&token=[token]`
 
-  ```py
+  ```json
   body = {
     "username": "",
     "password": "",
@@ -62,3 +62,27 @@
   ```
 
 - DELETE: `/api/auth/user?email=[email]&token=[token]`
+
+### Trading
+
+- POST: `/api/trading/order?email=[email]&token=[token]` (create order, execute if status=="finished")
+
+  ```json
+  body = {
+    "status": "",
+    "type": "",
+    "pair_symbol": "",
+    "input_token": "",
+    "input_amount": 0,
+    "output_token": "",
+    "output_amount": 0,
+  }
+  ```
+
+- DELETE: `/api/trading/order?email=[email]&token=[token]` (cancel non-finished order)
+
+  ```json
+  body = {
+    "order_id": 0,
+  }
+  ```

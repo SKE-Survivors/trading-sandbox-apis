@@ -1,6 +1,7 @@
 from mongoengine import connect
 from decouple import config
 from model.user import User
+from model.order import Order
 
 
 class DatabaseHandler:
@@ -30,3 +31,10 @@ class DatabaseHandler:
         except User.DoesNotExist:
             user = None
         return user
+
+    def find_order(self, id) -> Order:
+        try:
+            order = Order.objects.get(id=id)
+        except Order.DoesNotExist:
+            order = None
+        return order

@@ -21,6 +21,8 @@ app.register_blueprint(api.auth_endpoint, url_prefix='/api/auth')
 # /api/auth/login/{service}
 app.register_blueprint(oauth_endpoint, url_prefix='/api/auth')
 
+app.register_blueprint(api.trading_endpoint, url_prefix='/api/trading')
+
 
 @app.route('/')
 def root():

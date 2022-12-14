@@ -33,6 +33,13 @@ class User(Document):
 
     def delete(self, signal_kwargs=None, **write_concern):
         result = super().delete(signal_kwargs, **write_concern)
+
+        for order in Order.objects(user_email=self.email):
+            order.delete()
+
+        for trigger in Tigger.objects(user_email=self.email):
+            trigger.delete()
+
         print(f"Deleted user: {self.email}")
         return result
 
@@ -47,6 +54,48 @@ class User(Document):
         for tigger in Tigger.objects(user_email=self.email):
             tigger.append(tigger.info())
         return tiggers
+
+    def available_wallet(self):
+        active_status = ['active', 'draft']
+        active_orders = list(
+            filter(lambda d: d['status'] in active_status, self.orders()))
+
+        available_wallet = self.wallet
+        for order in active_orders:
+            available_wallet[order['input_token']] -= order['input_amount']
+        return available_wallet
+
+    def check_balance(self, token_symbol, amount):
+        available = self.available_wallet()
+        available_amount = available[token_symbol]
+        return available_amount > 0 and available_amount >= amount
+
+    def create_order(self, status, type, pair_symbol, input_token,
+                     input_amount, output_token, output_amount) -> Order:
+        order = Order(
+            user_email=self.email,
+            status=status.lower(),
+            type=type.lower(),
+            pair_symbol=pair_symbol.lower(),
+            input_token=input_token.lower(),
+            input_amount=input_amount,
+            output_token=output_token.lower(),
+            output_amount=output_amount,
+        ).save()
+
+        print(f"Added order id: {order.id}, for user: {self.email}")
+        return order
+
+    def execute_order(self, order: Order):
+        order.execute(self.email)
+        self.wallet[order.input_token] -= order.input_amount
+        self.wallet[order.output_token] += order.output_amount
+        self.save()
+        print(f"Executed order id: {order.id}, for user: {self.email}")
+
+    def cancel_order(self, order: Order):
+        order.cancel(self.email)
+        print(f"Canceled order id: {order.id}, for user: {self.email}")
 
 
 # ! temporary: just for testing

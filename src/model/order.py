@@ -30,6 +30,25 @@ class Order(Document):
             "output_amount": self.output_amount,
         }
 
+    # for user to call only
+    def execute(self, user_email):
+        if self.user_email != user_email:
+            raise Exception(f"Order does not owned by user: {user_email}")
+
+        self.update(status="finished")
+        print(f"Executed order id: {self.id}, for user: {user_email}")
+
+    # for user to call only
+    def cancel(self, user_email):
+        if self.user_email != user_email:
+            raise Exception(f"Order does not owned by user: {user_email}")
+
+        if self.status == "finished":
+            raise Exception(f"Cancel not allow to finished order")
+
+        self.update(status="cancel")
+        print(f"Canceled order id: {self.id}, for user: {user_email}")
+
 
 # ! temporary: tools to add sections
 if __name__ == '__main__':
