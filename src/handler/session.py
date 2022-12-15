@@ -8,9 +8,9 @@ HASHNAME = "Session"
 class SessionHandler:
     def __init__(self):
         self.client = redis.StrictRedis(
-            host=config('REDIS_HOST'),
-            port=config('REDIS_PORT'),
-            db=config('REDIS_DB'),
+            host=config('REDISHOST'),
+            port=config('REDISPORT'),
+            db=config('REDISDB', 0),
         )
         print("Connected to redis")
 

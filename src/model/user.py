@@ -69,7 +69,7 @@ class User(Document):
         available_wallet = self.wallet.copy()
         for order in active_orders:
             available_wallet[order['input_token']] -= order['input_amount']
-            
+
         return available_wallet
 
     def check_balance(self, token_symbol, amount):
@@ -133,12 +133,12 @@ class User(Document):
 # ! temporary: just for testing
 if __name__ == '__main__':
     connect(
-        db=config('DB_NAME'),
-        username=config('DB_USERNAME'),
-        password=config('DB_PASSWORD'),
-        host=config('DB_HOST'),
+        db=config('MONGODBNAME', 'trading-sandbox'),
+        username=config('MONGOUSER'),
+        password=config('MONGOPASSWORD'),
+        host=config('MONGOHOST'),
         authentication_source='admin',
-        port=int(config('DB_PORT')),
+        port=int(config('MONGOPORT')),
     )
 
     User(

@@ -53,12 +53,12 @@ class Order(Document):
 # ! temporary: tools to add sections
 if __name__ == '__main__':
     connect(
-        db=config('DB_NAME'),
-        username=config('DB_USERNAME'),
-        password=config('DB_PASSWORD'),
-        host=config('DB_HOST'),
+        db=config('MONGODBNAME', 'trading-sandbox'),
+        username=config('MONGOUSER'),
+        password=config('MONGOPASSWORD'),
+        host=config('MONGOHOST'),
         authentication_source='admin',
-        port=int(config('DB_PORT')),
+        port=int(config('MONGOPORT')),
     )
 
     Order(

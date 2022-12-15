@@ -6,10 +6,10 @@ services:
     restart: unless-stopped
     container_name: trading-sandbox-mongo
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGOUSER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGOPASSWORD}
     ports:
-      - ${DB_PORT}:27017
+      - ${MONGOPORT}:27017
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:27017" ]
       interval: 30s
@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
     container_name: trading-sandbox-redis
     ports:
-      - ${REDIS_PORT}:6379
+      - ${REDISPORT}:6379
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:6379" ]
       interval: 30s
@@ -33,10 +33,10 @@ services:
     restart: on-failure
     container_name: trading-sandbox-api
     environment:
-      - DB_HOST=database
-      - DB_PORT=27017
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - MONGOHOST=database
+      - MONGOPORT=27017
+      - REDISHOST=redis
+      - REDISPORT=6379
     ports:
       - ${APP_PORT}:8080
     depends_on:
