@@ -10,6 +10,8 @@ class SessionHandler:
         self.client = redis.StrictRedis(
             host=config('REDISHOST'),
             port=config('REDISPORT'),
+            username=config('REDISUSER', None),
+            password=config('REDISPASSWORD', None),
             db=config('REDISDB', 0),
         )
         print("Connected to redis")
