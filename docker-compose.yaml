@@ -38,7 +38,7 @@ services:
       - REDISHOST=redis
       - REDISPORT=6379
     ports:
-      - ${APP_PORT}:8080
+      - ${PORT}:8080
     depends_on:
       - database
       - redis
