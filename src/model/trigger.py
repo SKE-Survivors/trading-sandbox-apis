@@ -41,7 +41,7 @@ class Trigger(Document):
             raise Exception(f"Trigger does not owned by user: {user_email}")
 
         order = self.order()
-        if order.status != "finished":
+        if order.status == "draft":
             order.delete()
 
         return self.delete()
