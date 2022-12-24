@@ -9,11 +9,9 @@ class Order(Document):
     user_email = EmailField(required=True)
     timestamp = DateTimeField(default=datetime.datetime.now())
     status = StringField(required=True, max_length=10)
-    type = StringField(required=True, max_length=5)
+    flag = StringField(required=True, max_length=5)
     pair_symbol = StringField(required=True, max_length=10)
-    input_token = StringField(required=True, max_length=10)
     input_amount = FloatField(required=True, min_value=0)
-    output_token = StringField(required=True, max_length=10)
     output_amount = FloatField(required=True, min_value=0)
 
     def info(self):
@@ -22,11 +20,9 @@ class Order(Document):
             "user_email": self.user_email,
             "timestamp": self.timestamp.isoformat(),
             "status": self.status,
-            "type": self.type,
+            "flag": self.flag,
             "pair_symbol": self.pair_symbol,
-            "input_token": self.input_token,
             "input_amount": self.input_amount,
-            "output_token": self.output_token,
             "output_amount": self.output_amount,
         }
 
@@ -65,32 +61,26 @@ if __name__ == '__main__':
         id=1,
         user_email="first@gmail.com",
         status="draft",
-        type="buy",
+        flag="buy",
         pair_symbol="btc-usdt",
-        input_token="btc",
         input_amount=100,
-        output_token="usdt",
         output_amount=30000,
     ).save()
 
     Order(
         user_email="first@gmail.com",
         status="active",
-        type="sell",
+        flag="sell",
         pair_symbol="eth-usdt",
-        input_token="usdt",
         input_amount=99.5,
-        output_token="eth",
         output_amount=5000,
     ).save()
 
     Order(
         user_email="first@gmail.com",
         status="finished",
-        type="sell",
+        flag="sell",
         pair_symbol="bnb-usdt",
-        input_token="usdt",
         input_amount=10,
-        output_token="bnb",
         output_amount=100,
     ).save()

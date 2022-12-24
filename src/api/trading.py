@@ -3,6 +3,7 @@ from flask_cors import CORS, cross_origin
 from mongoengine import errors
 from handler import DatabaseHandler, SessionHandler
 from utils import build_response
+import utils
 
 trading_endpoint = Blueprint('trading', __name__)
 CORS(trading_endpoint)
@@ -67,11 +68,9 @@ def order():
         try:
             data = request.json
             status = data["status"]
-            order_type = data["type"]
+            order_flag = data["flag"]
             pair_symbol = data["pair_symbol"]
-            input_token = data["input_token"]
             input_amount = data["input_amount"]
-            output_token = data["output_token"]
             output_amount = data["output_amount"]
         except Exception as err:
             return build_response(status_code=400, err=err)
@@ -79,20 +78,14 @@ def order():
         if not status:
             body = {"STATUS": "FAILED", "MESSAGE": f"status is required"}
             return build_response(status_code=400, body=body)
-        if not order_type:
-            body = {"STATUS": "FAILED", "MESSAGE": f"type is required"}
+        if not order_flag:
+            body = {"STATUS": "FAILED", "MESSAGE": f"flag is required"}
             return build_response(status_code=400, body=body)
         if not pair_symbol:
             body = {"STATUS": "FAILED", "MESSAGE": f"pair_symbol is required"}
             return build_response(status_code=400, body=body)
-        if not input_token:
-            body = {"STATUS": "FAILED", "MESSAGE": f"input_token is required"}
-            return build_response(status_code=400, body=body)
         if not input_amount:
             body = {"STATUS": "FAILED", "MESSAGE": f"input_amount is required"}
-            return build_response(status_code=400, body=body)
-        if not output_token:
-            body = {"STATUS": "FAILED", "MESSAGE": f"output_token is required"}
             return build_response(status_code=400, body=body)
         if not output_amount:
             body = {
@@ -102,6 +95,7 @@ def order():
             return build_response(status_code=400, body=body)
 
         try:
+            input_token, _ = utils.map_pair(order_flag, pair_symbol)
             if not user.check_balance(input_token, input_amount):
                 body = {
                     "STATUS": "FAILED",
@@ -111,11 +105,9 @@ def order():
 
             order = user.create_order(
                 status,
-                order_type,
+                order_flag,
                 pair_symbol,
-                input_token,
                 input_amount,
-                output_token,
                 output_amount,
             )
         except errors.ValidationError as err:
@@ -191,39 +183,32 @@ def trigger():
     if request.method == "POST":
         try:
             data = request.json
-            order_type = data["type"]
+            order_flag = data["flag"]
             pair_symbol = data["pair_symbol"]
-            input_token = data["input_token"]
             input_amount = data["input_amount"]
-            output_token = data["output_token"]
+            output_amount = data["output_amount"]
             stop_price = data["stop_price"]
-            limit_price = data["limit_price"]
         except Exception as err:
             return build_response(status_code=400, err=err)
 
-        if not order_type:
-            body = {"STATUS": "FAILED", "MESSAGE": f"type is required"}
+        if not order_flag:
+            body = {"STATUS": "FAILED", "MESSAGE": f"flag is required"}
             return build_response(status_code=400, body=body)
         if not pair_symbol:
             body = {"STATUS": "FAILED", "MESSAGE": f"pair_symbol is required"}
             return build_response(status_code=400, body=body)
-        if not input_token:
-            body = {"STATUS": "FAILED", "MESSAGE": f"input_token is required"}
-            return build_response(status_code=400, body=body)
         if not input_amount:
             body = {"STATUS": "FAILED", "MESSAGE": f"input_amount is required"}
             return build_response(status_code=400, body=body)
-        if not output_token:
-            body = {"STATUS": "FAILED", "MESSAGE": f"output_token is required"}
+        if not output_amount:
+            body = {"STATUS": "FAILED", "MESSAGE": f"output_amount is required"}
             return build_response(status_code=400, body=body)
         if not stop_price:
             body = {"STATUS": "FAILED", "MESSAGE": f"stop_price is required"}
             return build_response(status_code=400, body=body)
-        if not limit_price:
-            body = {"STATUS": "FAILED", "MESSAGE": f"limit_price is required"}
-            return build_response(status_code=400, body=body)
 
         try:
+            input_token, _ = utils.map_pair(order_flag, pair_symbol)
             if not user.check_balance(input_token, input_amount):
                 body = {
                     "STATUS": "FAILED",
@@ -232,13 +217,11 @@ def trigger():
                 return build_response(status_code=400, body=body)
 
             trigger = user.create_trigger(
-                order_type,
+                order_flag,
                 pair_symbol,
-                input_token,
                 input_amount,
-                output_token,
+                output_amount,
                 stop_price,
-                limit_price,
             )
         except errors.ValidationError as err:
             body = {

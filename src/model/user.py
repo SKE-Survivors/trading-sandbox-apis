@@ -2,6 +2,7 @@ from mongoengine import connect, Document, StringField, EmailField, DictField, B
 from decouple import config
 from model.order import Order
 from model.trigger import Trigger
+import utils
 
 
 class User(Document):
@@ -68,7 +69,9 @@ class User(Document):
 
         available_wallet = self.wallet.copy()
         for order in active_orders:
-            available_wallet[order['input_token']] -= order['input_amount']
+            input_token, _ = utils.map_pair(order["flag"],
+                                            order["pair_symbol"])
+            available_wallet[input_token] -= order['input_amount']
 
         return available_wallet
 
@@ -77,16 +80,14 @@ class User(Document):
         available_amount = available[token_symbol]
         return available_amount > 0 and available_amount >= amount
 
-    def create_order(self, status, type, pair_symbol, input_token,
-                     input_amount, output_token, output_amount) -> Order:
+    def create_order(self, status, flag, pair_symbol, input_amount,
+                     output_amount) -> Order:
         order = Order(
             user_email=self.email,
             status=status.lower(),
-            type=type.lower(),
+            flag=flag.lower(),
             pair_symbol=pair_symbol.lower(),
-            input_token=input_token.lower(),
             input_amount=input_amount,
-            output_token=output_token.lower(),
             output_amount=output_amount,
         ).save()
 
@@ -95,8 +96,9 @@ class User(Document):
 
     def execute_order(self, order: Order):
         order.execute(self.email)
-        self.wallet[order.input_token] -= order.input_amount
-        self.wallet[order.output_token] += order.output_amount
+        input_token, output_token = utils.map_pair(order.flag, order.pair_symbol)
+        self.wallet[input_token] -= order.input_amount
+        self.wallet[output_token] += order.output_amount
         self.save()
         print(f"Executed order id: {order.id}, for user: {self.email}")
 
@@ -104,22 +106,21 @@ class User(Document):
         order.cancel(self.email)
         print(f"Canceled order id: {order.id}, for user: {self.email}")
 
-    def create_trigger(self, type, pair_symbol, input_token, input_amount,
-                       output_token, stop_price, limit_price):
-        order = self.create_order(status="draft",
-                                  type=type,
-                                  pair_symbol=pair_symbol,
-                                  input_token=input_token,
-                                  input_amount=input_amount,
-                                  output_token=output_token,
-                                  output_amount=input_amount *
-                                  limit_price).save()
+    def create_trigger(self, flag, pair_symbol, input_amount, output_amount,
+                       stop_price):
+        order = self.create_order(
+            status="draft",
+            flag=flag,
+            pair_symbol=pair_symbol,
+            input_amount=input_amount,
+            output_amount=output_amount,
+        )
 
         trigger = Trigger(
             user_email=self.email,
             pair_symbol=pair_symbol,
-            output_token=output_token,
             order_id=order.id,
+            flag=flag,
             stop_price=stop_price,
         ).save()
         print(f"Added trigger id: {trigger.id}, for user: {self.email}")
