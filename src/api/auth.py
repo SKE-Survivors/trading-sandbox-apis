@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 from mongoengine import errors
+from api.constants.message import *
 from handler import DatabaseHandler, SessionHandler
 from utils import build_response, encode_pwd, check_pwd
 
@@ -29,17 +30,14 @@ def signup():
         return build_response(status_code=400, err=err)
 
     if not email:
-        body = {"STATUS": "FAILED", "MESSAGE": f"Email is required"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
     if not password:
-        body = {"STATUS": "FAILED", "MESSAGE": f"Password is required"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_REQUIRED_PASSWORD)
     if confirm_password != password:
-        body = {"STATUS": "FAILED", "MESSAGE": f"Confirm password is wrong"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_WRONG_CONFIRM_PASSWORD)
 
     if dbh.find_user(email):
-        body = {"STATUS": "FAILED", "MESSAGE": f"User already exist"}
+        body = FAILED_USER_EXIST
         return build_response(status_code=400, body=body)
 
     try:
@@ -67,21 +65,17 @@ def login():
         return build_response(status_code=400, err=err)
 
     if not email:
-        body = {"STATUS": "FAILED", "MESSAGE": f"Email is required"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
     if not password:
-        body = {"STATUS": "FAILED", "MESSAGE": f"Password is required"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_REQUIRED_PASSWORD)
 
     # check email and password
     user = dbh.find_user(email)
     if not user:
-        body = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
 
     if check_pwd(password, user.password):
-        body = {"STATUS": "FAILED", "MESSAGE": f"Wrong password"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_WRONG_PASSWORD)
 
     # gen token and add to redis
     token = sh.set_session(user.email)
@@ -101,8 +95,7 @@ def logout():
     email = request.args.get("email")
 
     if not dbh.find_user(email):
-        body = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
 
     sh.remove_session(email)
     body = {"STATUS": "SUCCESS", "MESSAGE": f"Logout successfully"}
@@ -117,8 +110,7 @@ def check():
     token = request.args.get("token")
 
     if not dbh.find_user(email):
-        body = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
 
     msg = "User is authorized" if sh.in_session(
         email, token) else "User is not authorized"
@@ -132,18 +124,15 @@ def check():
 def user():
     email = request.args.get("email")
     if not email:
-        body = {'STATUS': 'FAILED', 'MESSAGE': 'Missing argument: email'}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
 
     user = dbh.find_user(email)
     if not user:
-        body = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
 
     if request.method == "GET":
         email = user.email
         data = user.view()
-        data.pop('password', None)
         body = {
             "STATUS": "SUCCESS",
             "data": data,
@@ -153,18 +142,15 @@ def user():
         token = request.args.get("token")
 
         if not token:
-            body = {'STATUS': 'FAILED', 'MESSAGE': 'Missing argument: token'}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_MISSING_TOKEN)
 
         try:
             data = request.json
         except Exception:
-            body = {'STATUS': 'FAILED', 'MESSAGE': 'Missing body'}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_MISSING_BODY)
 
         if not sh.in_session(email, token):
-            body = {"STATUS": "FAILED", "MESSAGE": f"Permission denied"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
 
         for field in data:
             # note: you can add more field to update here
@@ -175,22 +161,10 @@ def user():
                 try:
                     confirm = data["confirm-password"]
                 except Exception:
-                    return build_response(
-                        status_code=400,
-                        body={
-                            'STATUS': 'FAILED',
-                            'MESSAGE': 'Missing confirm-password'
-                        },
-                    )
+                    return build_response(status_code=400, body=FAILED_REQUIRED_CONFIRM_PASSWORD)
 
                 if data[field] != confirm:
-                    return build_response(
-                        status_code=400,
-                        body={
-                            'STATUS': 'FAILED',
-                            'MESSAGE': 'Confirm password mismatch'
-                        },
-                    )
+                    return build_response(status_code=400, body=FAILED_WRONG_CONFIRM_PASSWORD)
                 user.password = encode_pwd(data[field])
 
         user.update(**user.info())
@@ -200,12 +174,10 @@ def user():
         token = request.args.get("token")
 
         if not token:
-            body = {'STATUS': 'FAILED', 'MESSAGE': 'Missing argument: token'}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_MISSING_TOKEN)
 
         if not sh.in_session(email, token):
-            body = {"STATUS": "FAILED", "MESSAGE": f"Permission denied"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
 
         user.delete()
         body = {"STATUS": "SUCCESS", "MESSAGE": f"Delete user {user.email}"}

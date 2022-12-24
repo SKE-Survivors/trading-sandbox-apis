@@ -28,6 +28,7 @@ class User(Document):
 
     def view(self):
         data = self.info()
+        data.pop('password', None)
         data["available_wallet"] = self.available_wallet()
         data["orders"] = self.orders()
         data["triggers"] = self.triggers()

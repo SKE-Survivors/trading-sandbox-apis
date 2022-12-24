@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 from mongoengine import errors
+from api.constants.message import *
 from handler import DatabaseHandler, SessionHandler
 from utils import build_response
 import utils
@@ -24,33 +25,28 @@ def order():
     token = request.args.get("token")
 
     if not token:
-        body = {'STATUS': 'FAILED', 'MESSAGE': 'Missing argument: token'}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_MISSING_TOKEN)
 
     user = dbh.find_user(email)
     if not user:
-        body = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
 
     if not sh.in_session(email, token):
-        body = {"STATUS": "FAILED", "MESSAGE": f"Permission denied"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
 
     if request.method == "DELETE":
         try:
             data = request.json
             order_id = data["order_id"]
-        except Exception as err:
-            return build_response(status_code=400, err=err)
+        except Exception:
+            return build_response(status_code=400, err=FAILED_MISSING_BODY)
 
         if not order_id:
-            body = {"STATUS": "FAILED", "MESSAGE": f"order_id is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_ORDER_ID)
 
         order = dbh.find_order(order_id)
         if not order:
-            body = {"STATUS": "FAILED", "MESSAGE": f"Order does not exist"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_ORDER_NOT_EXIST)
 
         try:
             user.cancel_order(order)
@@ -72,36 +68,24 @@ def order():
             pair_symbol = data["pair_symbol"]
             input_amount = data["input_amount"]
             output_amount = data["output_amount"]
-        except Exception as err:
-            return build_response(status_code=400, err=err)
+        except Exception:
+            return build_response(status_code=400, err=FAILED_MISSING_BODY)
 
         if not status:
-            body = {"STATUS": "FAILED", "MESSAGE": f"status is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_STATUS)
         if not order_flag:
-            body = {"STATUS": "FAILED", "MESSAGE": f"flag is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_FLAG)
         if not pair_symbol:
-            body = {"STATUS": "FAILED", "MESSAGE": f"pair_symbol is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_PAIR)
         if not input_amount:
-            body = {"STATUS": "FAILED", "MESSAGE": f"input_amount is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_INPUT_AMOUNT)
         if not output_amount:
-            body = {
-                "STATUS": "FAILED",
-                "MESSAGE": f"output_amount is required"
-            }
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
 
         try:
             input_token, _ = utils.map_pair(order_flag, pair_symbol)
             if not user.check_balance(input_token, input_amount):
-                body = {
-                    "STATUS": "FAILED",
-                    "MESSAGE": f"user balance not enough to create this order"
-                }
-                return build_response(status_code=400, body=body)
+                return build_response(status_code=400, body=FAILED_BALANCE_NOT_ENOUGH)
 
             order = user.create_order(
                 status,
@@ -140,17 +124,14 @@ def trigger():
     token = request.args.get("token")
 
     if not token:
-        body = {'STATUS': 'FAILED', 'MESSAGE': 'Missing argument: token'}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_MISSING_TOKEN)
 
     user = dbh.find_user(email)
     if not user:
-        body = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
 
     if not sh.in_session(email, token):
-        body = {"STATUS": "FAILED", "MESSAGE": f"Permission denied"}
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
 
     if request.method == "DELETE":
         try:
@@ -160,13 +141,11 @@ def trigger():
             return build_response(status_code=400, err=err)
 
         if not trigger_id:
-            body = {"STATUS": "FAILED", "MESSAGE": f"trigger_id is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_TRIGGER_ID)
 
         trigger = dbh.find_trigger(trigger_id)
         if not trigger:
-            body = {"STATUS": "FAILED", "MESSAGE": f"Trigger does not exist"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_TRIGGER_NOT_EXIST)
 
         try:
             user.cancel_trigger(trigger)
@@ -192,29 +171,20 @@ def trigger():
             return build_response(status_code=400, err=err)
 
         if not order_flag:
-            body = {"STATUS": "FAILED", "MESSAGE": f"flag is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_FLAG)
         if not pair_symbol:
-            body = {"STATUS": "FAILED", "MESSAGE": f"pair_symbol is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_PAIR)
         if not input_amount:
-            body = {"STATUS": "FAILED", "MESSAGE": f"input_amount is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_INPUT_AMOUNT)
         if not output_amount:
-            body = {"STATUS": "FAILED", "MESSAGE": f"output_amount is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
         if not stop_price:
-            body = {"STATUS": "FAILED", "MESSAGE": f"stop_price is required"}
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=FAILED_REQUIRE_STOP_LIMIT)
 
         try:
             input_token, _ = utils.map_pair(order_flag, pair_symbol)
             if not user.check_balance(input_token, input_amount):
-                body = {
-                    "STATUS": "FAILED",
-                    "MESSAGE": f"user balance not enough to create this order"
-                }
-                return build_response(status_code=400, body=body)
+                return build_response(status_code=400, body=FAILED_BALANCE_NOT_ENOUGH)
 
             trigger = user.create_trigger(
                 order_flag,
