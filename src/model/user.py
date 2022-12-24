@@ -65,13 +65,11 @@ class User(Document):
 
     def available_wallet(self):
         active_status = ['active', 'draft']
-        active_orders = list(
-            filter(lambda d: d['status'] in active_status, self.orders()))
+        active_orders = list(filter(lambda d: d['status'] in active_status, self.orders()))
 
         available_wallet = self.wallet.copy()
         for order in active_orders:
-            input_token, _ = utils.map_pair(order["flag"],
-                                            order["pair_symbol"])
+            input_token, _ = utils.map_pair(order["flag"], order["pair_symbol"])
             available_wallet[input_token] -= order['input_amount']
 
         return available_wallet
@@ -81,8 +79,7 @@ class User(Document):
         available_amount = available[token_symbol]
         return available_amount > 0 and available_amount >= amount
 
-    def create_order(self, status, flag, pair_symbol, input_amount,
-                     output_amount) -> Order:
+    def create_order(self, status, flag, pair_symbol, input_amount, output_amount) -> Order:
         order = Order(
             user_email=self.email,
             status=status.lower(),
@@ -91,6 +88,10 @@ class User(Document):
             input_amount=input_amount,
             output_amount=output_amount,
         ).save()
+        
+        # todo: move check execute to here?
+        # todo: update redis
+        # todo: check matching from redis
 
         print(f"Added order id: {order.id}, for user: {self.email}")
         return order
@@ -101,6 +102,9 @@ class User(Document):
         self.wallet[input_token] -= order.input_amount
         self.wallet[output_token] += order.output_amount
         self.save()
+        
+        # todo: update redis
+        
         print(f"Executed order id: {order.id}, for user: {self.email}")
 
     def cancel_order(self, order: Order):
@@ -121,12 +125,11 @@ class User(Document):
             user_email=self.email,
             pair_symbol=pair_symbol,
             order_id=order.id,
-            flag=flag,
             stop_price=stop_price,
         ).save()
         print(f"Added trigger id: {trigger.id}, for user: {self.email}")
 
-    # this mean delete trigger
+    # delete trigger
     def cancel_trigger(self, trigger: Trigger):
         trigger.cancel(self.email)
         print(f"Canceled order id: {trigger.id}, for user: {self.email}")

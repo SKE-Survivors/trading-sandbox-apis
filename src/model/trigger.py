@@ -9,7 +9,6 @@ class Trigger(Document):
     id = SequenceField(primary_key=True)
     user_email = EmailField(required=True)
     order_id = IntField(required=True, min_value=1)
-    flag = StringField(required=True, max_length=5)
     pair_symbol = StringField(required=True, max_length=10)
     stop_price = FloatField(required=True, min_value=0)
 
@@ -18,7 +17,6 @@ class Trigger(Document):
             "id": self.id,
             "user_email": self.user_email,
             "order_id": self.order_id,
-            "flag": self.flag,
             "pair_symbol": self.pair_symbol,
             "stop_price": self.stop_price,
         }
@@ -60,6 +58,5 @@ if __name__ == '__main__':
         user_email="first@gmail.com",
         pair_symbol="btc-usdt",
         order_id=1,
-        flag="buy",
         stop_price=100.9,
     ).save()
