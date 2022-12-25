@@ -30,6 +30,8 @@ class Order(Document):
     def execute(self, user_email):
         if self.user_email != user_email:
             raise Exception(f"Order does not owned by user: {user_email}")
+        
+        # todo: remove order from redis
 
         self.update(status="finished")
         print(f"Executed order id: {self.id}, for user: {user_email}")
@@ -42,6 +44,8 @@ class Order(Document):
         if self.status == "finished":
             raise Exception(f"Cancel not allow to finished order")
 
+        # todo: remove order from redis
+        
         self.update(status="cancel")
         print(f"Canceled order id: {self.id}, for user: {user_email}")
 

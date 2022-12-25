@@ -1,6 +1,5 @@
-from flask import Blueprint, request
+from flask import Blueprint
 from flask_cors import CORS, cross_origin
-from mongoengine import errors
 from handler import DatabaseHandler, SessionHandler
 from utils import build_response
 

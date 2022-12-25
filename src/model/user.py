@@ -2,7 +2,7 @@ from mongoengine import connect, Document, StringField, EmailField, DictField, B
 from decouple import config
 from model.order import Order
 from model.trigger import Trigger
-import utils
+from utils import map_pair
 
 
 class User(Document):
@@ -69,7 +69,7 @@ class User(Document):
 
         available_wallet = self.wallet.copy()
         for order in active_orders:
-            input_token, _ = utils.map_pair(order["flag"], order["pair_symbol"])
+            input_token, _ = map_pair(order["flag"], order["pair_symbol"])
             available_wallet[input_token] -= order['input_amount']
 
         return available_wallet
@@ -89,30 +89,33 @@ class User(Document):
             output_amount=output_amount,
         ).save()
         
-        # todo: move check execute to here?
-        # todo: update redis
-        # todo: check matching from redis
+        if order.status == "finished":
+            try:
+                self.execute_order(order)
+            except Exception as err:
+                order.delete()
+                raise Exception(f"Execute order failed: {err}")
+
+        if order.status == "active":
+            # todo: add order redis
+            pass
 
         print(f"Added order id: {order.id}, for user: {self.email}")
         return order
 
     def execute_order(self, order: Order):
         order.execute(self.email)
-        input_token, output_token = utils.map_pair(order.flag, order.pair_symbol)
+        input_token, output_token = map_pair(order.flag, order.pair_symbol)
         self.wallet[input_token] -= order.input_amount
         self.wallet[output_token] += order.output_amount
         self.save()
-        
-        # todo: update redis
-        
         print(f"Executed order id: {order.id}, for user: {self.email}")
 
     def cancel_order(self, order: Order):
         order.cancel(self.email)
         print(f"Canceled order id: {order.id}, for user: {self.email}")
 
-    def create_trigger(self, flag, pair_symbol, input_amount, output_amount,
-                       stop_price):
+    def create_trigger(self, flag, pair_symbol, input_amount, output_amount, stop_price):
         order = self.create_order(
             status="draft",
             flag=flag,
@@ -127,6 +130,9 @@ class User(Document):
             order_id=order.id,
             stop_price=stop_price,
         ).save()
+        
+        # todo: add trigger to redis
+
         print(f"Added trigger id: {trigger.id}, for user: {self.email}")
 
     # delete trigger

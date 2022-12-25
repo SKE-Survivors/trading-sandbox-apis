@@ -3,8 +3,7 @@ from flask_cors import CORS, cross_origin
 from mongoengine import errors
 from api.constants.message import *
 from handler import DatabaseHandler, SessionHandler
-from utils import build_response
-import utils
+from utils import build_response, map_pair
 
 trading_endpoint = Blueprint('trading', __name__)
 CORS(trading_endpoint)
@@ -83,7 +82,7 @@ def order():
             return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
 
         try:
-            input_token, _ = utils.map_pair(order_flag, pair_symbol)
+            input_token, _ = map_pair(order_flag, pair_symbol)
             if not user.check_balance(input_token, input_amount):
                 return build_response(status_code=400, body=FAILED_BALANCE_NOT_ENOUGH)
 
@@ -100,18 +99,6 @@ def order():
                 "MESSAGE": f"Create order failed: {err}"
             }
             return build_response(status_code=400, body=body)
-
-        # execute order
-        if order.status == "finished":
-            try:
-                user.execute_order(order)
-            except Exception as err:
-                # todo: rollback order creation?
-                body = {
-                    "STATUS": "FAILED",
-                    "MESSAGE": f"Order created, but execution failed: {err}"
-                }
-                return build_response(status_code=400, body=body)
 
         body = {"STATUS": "SUCCESS", "MESSAGE": "Create order successfully"}
         return build_response(status_code=201, body=body)
@@ -182,7 +169,7 @@ def trigger():
             return build_response(status_code=400, body=FAILED_REQUIRE_STOP_LIMIT)
 
         try:
-            input_token, _ = utils.map_pair(order_flag, pair_symbol)
+            input_token, _ = map_pair(order_flag, pair_symbol)
             if not user.check_balance(input_token, input_amount):
                 return build_response(status_code=400, body=FAILED_BALANCE_NOT_ENOUGH)
 

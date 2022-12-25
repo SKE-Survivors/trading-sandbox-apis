@@ -1,6 +1,4 @@
-import datetime
-
-from mongoengine import connect, Document, SequenceField, EmailField, IntField, DateTimeField, StringField, FloatField
+from mongoengine import connect, Document, SequenceField, EmailField, IntField, StringField, FloatField
 from decouple import config
 from model.order import Order
 
@@ -28,9 +26,14 @@ class Trigger(Document):
     def trigger(self):
         order = self.order()
         if order.status == "draft":
+            # todo: add order to redis
+            
             order.update(status="active")
 
-        print(f"trigger id: {self.id}, has been trigger")
+        # todo: remove trigger from redis
+        
+        print(f"Trigger id: {self.id}, has been trigger")
+        return self.delete()
 
     def cancel(self, user_email):
         if self.user_email != user_email:
@@ -40,6 +43,8 @@ class Trigger(Document):
         if order.status == "draft":
             order.delete()
 
+        # todo: remove trigger from redis
+        
         return self.delete()
 
 
