@@ -11,8 +11,6 @@ FAILED_PERMISSION_DENIED = {"STATUS": "FAILED", "MESSAGE": f"Permission denied"}
 FAILED_USER_NOT_EXIST = {"STATUS": "FAILED", "MESSAGE": f"User does not exist"}
 FAILED_USER_EXIST = {"STATUS": "FAILED", "MESSAGE": f"User already exist"}
 
-FAILED_BALANCE_NOT_ENOUGH = {"STATUS": "FAILED","MESSAGE": f"user balance not enough to create this order"}
-
 FAILED_ORDER_NOT_EXIST = {"STATUS": "FAILED", "MESSAGE": f"Order does not exist"}
 FAILED_REQUIRE_ORDER_ID = {"STATUS": "FAILED", "MESSAGE": f"order_id is required"}
 FAILED_REQUIRE_STATUS = {"STATUS": "FAILED", "MESSAGE": f"status is required"}

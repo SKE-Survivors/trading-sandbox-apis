@@ -2,9 +2,13 @@ def map_pair(flag, pair):
     """
     return input and output token symbol
     """
-    token = pair.split("-")
+    try:
+        token = pair.split("-")
+        input_token, output_token = token[0], token[1]
+    except Exception:
+        raise Exception("Wrong pair symbol format")
     
     if flag == "buy":
-        return token[1], token[0]
+        input_token, output_token = token[1], token[0]
     
-    return token[0], token[1]
+    return input_token, output_token

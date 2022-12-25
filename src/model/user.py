@@ -80,6 +80,18 @@ class User(Document):
         return available_amount > 0 and available_amount >= amount
 
     def create_order(self, status, flag, pair_symbol, input_amount, output_amount) -> Order:
+        if status.lower() not in ["finished", "active", "draft"]:
+            raise Exception(f"Invalid status")
+        
+        if flag.lower() not in ["buy", "sell"]:
+            raise Exception(f"Invalid flag")
+        
+        # check pair_symbol format
+        input_token, _ = map_pair(flag, pair_symbol) 
+        
+        if not self.check_balance(input_token, input_amount):
+            raise Exception(f"User balance not enough to create this order")
+            
         order = Order(
             user_email=self.email,
             status=status.lower(),
@@ -104,11 +116,16 @@ class User(Document):
         return order
 
     def execute_order(self, order: Order):
+        if order.status != "active":
+            raise Exception(f"Only active order allow to be execute")
+        
         order.execute(self.email)
+        
         input_token, output_token = map_pair(order.flag, order.pair_symbol)
         self.wallet[input_token] -= order.input_amount
         self.wallet[output_token] += order.output_amount
         self.save()
+        
         print(f"Executed order id: {order.id}, for user: {self.email}")
 
     def cancel_order(self, order: Order):
@@ -124,12 +141,16 @@ class User(Document):
             output_amount=output_amount,
         )
 
-        trigger = Trigger(
-            user_email=self.email,
-            pair_symbol=pair_symbol,
-            order_id=order.id,
-            stop_price=stop_price,
-        ).save()
+        try:
+            trigger = Trigger(
+                user_email=self.email,
+                pair_symbol=pair_symbol,
+                order_id=order.id,
+                stop_price=stop_price,
+            ).save()
+        except Exception as err:
+            order.delete()
+            raise err
         
         # todo: add trigger to redis
 

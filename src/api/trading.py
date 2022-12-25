@@ -82,10 +82,6 @@ def order():
             return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
 
         try:
-            input_token, _ = map_pair(order_flag, pair_symbol)
-            if not user.check_balance(input_token, input_amount):
-                return build_response(status_code=400, body=FAILED_BALANCE_NOT_ENOUGH)
-
             order = user.create_order(
                 status,
                 order_flag,
@@ -93,7 +89,7 @@ def order():
                 input_amount,
                 output_amount,
             )
-        except errors.ValidationError as err:
+        except Exception as err:
             body = {
                 "STATUS": "FAILED",
                 "MESSAGE": f"Create order failed: {err}"
@@ -124,8 +120,8 @@ def trigger():
         try:
             data = request.json
             trigger_id = data["trigger_id"]
-        except Exception as err:
-            return build_response(status_code=400, err=err)
+        except Exception:
+            return build_response(status_code=400, err=FAILED_MISSING_BODY)
 
         if not trigger_id:
             return build_response(status_code=400, body=FAILED_REQUIRE_TRIGGER_ID)
@@ -154,8 +150,8 @@ def trigger():
             input_amount = data["input_amount"]
             output_amount = data["output_amount"]
             stop_price = data["stop_price"]
-        except Exception as err:
-            return build_response(status_code=400, err=err)
+        except Exception:
+            return build_response(status_code=400, err=FAILED_MISSING_BODY)
 
         if not order_flag:
             return build_response(status_code=400, body=FAILED_REQUIRE_FLAG)
@@ -169,10 +165,6 @@ def trigger():
             return build_response(status_code=400, body=FAILED_REQUIRE_STOP_LIMIT)
 
         try:
-            input_token, _ = map_pair(order_flag, pair_symbol)
-            if not user.check_balance(input_token, input_amount):
-                return build_response(status_code=400, body=FAILED_BALANCE_NOT_ENOUGH)
-
             trigger = user.create_trigger(
                 order_flag,
                 pair_symbol,
@@ -180,7 +172,7 @@ def trigger():
                 output_amount,
                 stop_price,
             )
-        except errors.ValidationError as err:
+        except Exception as err:
             body = {
                 "STATUS": "FAILED",
                 "MESSAGE": f"Create trigger failed: {err}"
