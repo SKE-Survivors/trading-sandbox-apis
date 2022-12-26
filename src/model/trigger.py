@@ -1,6 +1,4 @@
-import datetime
-
-from mongoengine import connect, Document, SequenceField, EmailField, IntField, DateTimeField, StringField, FloatField
+from mongoengine import connect, Document, SequenceField, EmailField, IntField, StringField, FloatField
 from decouple import config
 from model.order import Order
 
@@ -9,9 +7,7 @@ class Trigger(Document):
     id = SequenceField(primary_key=True)
     user_email = EmailField(required=True)
     order_id = IntField(required=True, min_value=1)
-    timestamp = DateTimeField(default=datetime.datetime.now())
     pair_symbol = StringField(required=True, max_length=10)
-    output_token = StringField(required=True, max_length=10)
     stop_price = FloatField(required=True, min_value=0)
 
     def info(self):
@@ -19,9 +15,7 @@ class Trigger(Document):
             "id": self.id,
             "user_email": self.user_email,
             "order_id": self.order_id,
-            "timestamp": self.timestamp.isoformat(),
             "pair_symbol": self.pair_symbol,
-            "output_token": self.output_token,
             "stop_price": self.stop_price,
         }
 
@@ -32,9 +26,14 @@ class Trigger(Document):
     def trigger(self):
         order = self.order()
         if order.status == "draft":
+            # todo: add order to redis
+            
             order.update(status="active")
 
-        print(f"trigger id: {self.id}, has been trigger")
+        # todo: remove trigger from redis
+        
+        print(f"Trigger id: {self.id}, has been trigger")
+        return self.delete()
 
     def cancel(self, user_email):
         if self.user_email != user_email:
@@ -44,6 +43,8 @@ class Trigger(Document):
         if order.status == "draft":
             order.delete()
 
+        # todo: remove trigger from redis
+        
         return self.delete()
 
 
@@ -61,7 +62,6 @@ if __name__ == '__main__':
     Trigger(
         user_email="first@gmail.com",
         pair_symbol="btc-usdt",
-        output_token="usdt",
         order_id=1,
         stop_price=100.9,
     ).save()

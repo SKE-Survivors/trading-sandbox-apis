@@ -70,11 +70,9 @@
   ```json
   body = {
     "status": "",
-    "type": "",
+    "flag": "",
     "pair_symbol": "",
-    "input_token": "",
     "input_amount": 0,
-    "output_token": "",
     "output_amount": 0,
   }
   ```
@@ -91,14 +89,11 @@
 
   ```json
   body = {
-    "type": "",
+    "flag": "",
     "pair_symbol": "",
-    "input_token": "",
     "input_amount": 0,
-    "output_token": "",
     "output_amount": 0,
     "stop_price": 0,
-    "limit_price": 0
   }
   ```
 

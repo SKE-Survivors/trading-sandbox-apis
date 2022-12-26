@@ -2,6 +2,7 @@ from mongoengine import connect, Document, StringField, EmailField, DictField, B
 from decouple import config
 from model.order import Order
 from model.trigger import Trigger
+from utils import map_pair
 
 
 class User(Document):
@@ -27,6 +28,7 @@ class User(Document):
 
     def view(self):
         data = self.info()
+        data.pop('password', None)
         data["available_wallet"] = self.available_wallet()
         data["orders"] = self.orders()
         data["triggers"] = self.triggers()
@@ -63,12 +65,12 @@ class User(Document):
 
     def available_wallet(self):
         active_status = ['active', 'draft']
-        active_orders = list(
-            filter(lambda d: d['status'] in active_status, self.orders()))
+        active_orders = list(filter(lambda d: d['status'] in active_status, self.orders()))
 
         available_wallet = self.wallet.copy()
         for order in active_orders:
-            available_wallet[order['input_token']] -= order['input_amount']
+            input_token, _ = map_pair(order["flag"], order["pair_symbol"])
+            available_wallet[input_token] -= order['input_amount']
 
         return available_wallet
 
@@ -77,54 +79,84 @@ class User(Document):
         available_amount = available[token_symbol]
         return available_amount > 0 and available_amount >= amount
 
-    def create_order(self, status, type, pair_symbol, input_token,
-                     input_amount, output_token, output_amount) -> Order:
+    def create_order(self, status, flag, pair_symbol, input_amount, output_amount) -> Order:
+        if status.lower() not in ["finished", "active", "draft"]:
+            raise Exception(f"Invalid status")
+        
+        if flag.lower() not in ["buy", "sell"]:
+            raise Exception(f"Invalid flag")
+        
+        # check pair_symbol format
+        input_token, _ = map_pair(flag, pair_symbol) 
+        
+        if not self.check_balance(input_token, input_amount):
+            raise Exception(f"User balance not enough to create this order")
+            
         order = Order(
             user_email=self.email,
             status=status.lower(),
-            type=type.lower(),
+            flag=flag.lower(),
             pair_symbol=pair_symbol.lower(),
-            input_token=input_token.lower(),
             input_amount=input_amount,
-            output_token=output_token.lower(),
             output_amount=output_amount,
         ).save()
+        
+        if order.status == "finished":
+            try:
+                self.execute_order(order)
+            except Exception as err:
+                order.delete()
+                raise Exception(f"Execute order failed: {err}")
+
+        if order.status == "active":
+            # todo: add order redis
+            pass
 
         print(f"Added order id: {order.id}, for user: {self.email}")
         return order
 
     def execute_order(self, order: Order):
+        if order.status != "active":
+            raise Exception(f"Only active order allow to be execute")
+        
         order.execute(self.email)
-        self.wallet[order.input_token] -= order.input_amount
-        self.wallet[order.output_token] += order.output_amount
+        
+        input_token, output_token = map_pair(order.flag, order.pair_symbol)
+        self.wallet[input_token] -= order.input_amount
+        self.wallet[output_token] += order.output_amount
         self.save()
+        
         print(f"Executed order id: {order.id}, for user: {self.email}")
 
     def cancel_order(self, order: Order):
         order.cancel(self.email)
         print(f"Canceled order id: {order.id}, for user: {self.email}")
 
-    def create_trigger(self, type, pair_symbol, input_token, input_amount,
-                       output_token, stop_price, limit_price):
-        order = self.create_order(status="draft",
-                                  type=type,
-                                  pair_symbol=pair_symbol,
-                                  input_token=input_token,
-                                  input_amount=input_amount,
-                                  output_token=output_token,
-                                  output_amount=input_amount *
-                                  limit_price).save()
-
-        trigger = Trigger(
-            user_email=self.email,
+    def create_trigger(self, flag, pair_symbol, input_amount, output_amount, stop_price):
+        order = self.create_order(
+            status="draft",
+            flag=flag,
             pair_symbol=pair_symbol,
-            output_token=output_token,
-            order_id=order.id,
-            stop_price=stop_price,
-        ).save()
+            input_amount=input_amount,
+            output_amount=output_amount,
+        )
+
+        try:
+            trigger = Trigger(
+                user_email=self.email,
+                pair_symbol=pair_symbol,
+                order_id=order.id,
+                stop_price=stop_price,
+            ).save()
+        except Exception as err:
+            order.delete()
+            raise err
+        
+        # todo: add trigger to redis
+
         print(f"Added trigger id: {trigger.id}, for user: {self.email}")
 
-    # this mean delete trigger
+    # delete trigger
     def cancel_trigger(self, trigger: Trigger):
         trigger.cancel(self.email)
         print(f"Canceled order id: {trigger.id}, for user: {self.email}")
