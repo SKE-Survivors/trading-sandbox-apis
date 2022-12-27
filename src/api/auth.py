@@ -171,6 +171,7 @@ def user():
         body = {"STATUS": "SUCCESS", "MESSAGE": f"Update user {user.email}"}
 
     if request.method == "DELETE":
+        ### Why not just use the same error check as put before going into if, this is redundant
         token = request.args.get("token")
 
         if not token:
@@ -178,6 +179,7 @@ def user():
 
         if not sh.in_session(email, token):
             return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
+        ###
 
         user.delete()
         body = {"STATUS": "SUCCESS", "MESSAGE": f"Delete user {user.email}"}
