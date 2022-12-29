@@ -37,8 +37,8 @@ def order():
         try:
             data = request.json
             order_id = data["order_id"]
-        except Exception:
-            return build_response(status_code=400, err=FAILED_MISSING_BODY)
+        except Exception as err:
+            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
 
         if not order_id:
             return build_response(status_code=400, body=FAILED_REQUIRE_ORDER_ID)
@@ -54,10 +54,10 @@ def order():
                 "STATUS": "FAILED",
                 "MESSAGE": f"Cancel order not allow: {err}"
             }
-            return build_response(status_code=400, body=body)
+            return build_response(status_code=400, body=body, err=err)
 
         body = {"STATUS": "SUCCESS", "MESSAGE": "Cancel order Successfully"}
-        return build_response(status_code=201, body=body)
+        return build_response(status_code=200, body=body)
 
     if request.method == "POST":
         try:
@@ -67,8 +67,8 @@ def order():
             pair_symbol = data["pair_symbol"]
             input_amount = data["input_amount"]
             output_amount = data["output_amount"]
-        except Exception:
-            return build_response(status_code=400, err=FAILED_MISSING_BODY)
+        except Exception as err:
+            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
 
         if not status:
             return build_response(status_code=400, body=FAILED_REQUIRE_STATUS)
@@ -120,8 +120,8 @@ def trigger():
         try:
             data = request.json
             trigger_id = data["trigger_id"]
-        except Exception:
-            return build_response(status_code=400, err=FAILED_MISSING_BODY)
+        except Exception as err: 
+            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
 
         if not trigger_id:
             return build_response(status_code=400, body=FAILED_REQUIRE_TRIGGER_ID)
@@ -150,8 +150,8 @@ def trigger():
             input_amount = data["input_amount"]
             output_amount = data["output_amount"]
             stop_price = data["stop_price"]
-        except Exception:
-            return build_response(status_code=400, err=FAILED_MISSING_BODY)
+        except Exception as err:
+            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
 
         if not order_flag:
             return build_response(status_code=400, body=FAILED_REQUIRE_FLAG)
