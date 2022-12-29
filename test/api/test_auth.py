@@ -5,15 +5,8 @@ import requests
 import rstr
 
 class TestAuth(unittest.TestCase):
-    # base_url = "http://localhost:3000"
-    base_url = "https://trading-sandbox-api.up.railway.app"
+    base_url = "http://localhost:3000"
     headers = {"Content-Type": "application/json"}
-    # body = {
-    #         "email": "testgmail@gmail.com",
-    #         "username": "gmail",
-    #         "password": "ggmail",
-    #         "confirm-password": "ggmail",
-    #     }
     email = f'{rstr.xeger("[A-Z][a-z]{3,5}")}@gmail.com'
     body = {
         "email": email,
@@ -25,8 +18,6 @@ class TestAuth(unittest.TestCase):
 
     @classmethod
     def setUpClass(self) -> None:
-        # self.dbh = DatabaseHandler()
-        # self.dbh.add_user("testemail@email.com", "emailer", encode_pwd("eemail"))
         self.sec_email = f'{rstr.xeger("[A-Z][a-z]{3,5}")}@gmail.com'
         body = {
             "email": self.sec_email,
