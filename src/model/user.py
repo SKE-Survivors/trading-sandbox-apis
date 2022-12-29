@@ -116,8 +116,8 @@ class User(Document):
         return order
 
     def execute_order(self, order: Order):
-        if order.status != "active":
-            raise Exception(f"Only active order allow to be execute")
+        if order.status == "draft":
+            raise Exception(f"Draft order not allow to be execute")
         
         order.execute(self.email)
         
