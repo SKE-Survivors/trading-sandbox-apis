@@ -202,6 +202,7 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "User does not exist")
 
+    # User does not exist: นายต้องเพิ่ม user ก่อน...
     def test_login_with_wrong_password(self):
         body = {"email": "testemail@email.com", "password": "wrong_password"}
         resp = requests.post(
@@ -272,6 +273,8 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(resp_check_body["STATUS"], "SUCCESS")
         self.assertEqual(resp_check_body["MESSAGE"], "User is authorized")
 
+    # อันนี้เราตั้งใจให้ไม่ failed นะ, แต่ดูๆไปเหมือน เส้นนี้จะไม่ได้ใช้แล้ว
+    # ถ้าจะให้แก้ยังไงก้บอกมาละกัน
     def test_check_endpoint_with_unauthorized_user(self):
         resp_check = requests.get(
             self.base_url + "/api/auth/check?email=testemail@email.com&token=123",
@@ -371,6 +374,7 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(update_resp_body["STATUS"], "FAILED")
         self.assertEqual(update_resp_body["MESSAGE"], "Missing argument: token")
         
+    # Permission denied: นายต้องใส่ token ที่ถูกก่อน มันถึงจะ check body?
     def test_user_endpoint_with_missing_body(self):
         update_resp = requests.put(
             self.base_url

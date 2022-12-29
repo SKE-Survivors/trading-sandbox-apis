@@ -66,6 +66,7 @@ class TestTrading(unittest.TestCase):
             headers=self.headers,
         )
 
+    # Finished oredr not allow to delete
     def test_delete_order_endpoint_happy_path(self):
         order = {
             "status": "finished",
@@ -163,6 +164,9 @@ class TestTrading(unittest.TestCase):
         print(del_resp_body["MESSAGE"])
         self.assertEqual(del_resp_body["MESSAGE"], "Missing body")
     
+    # order_id is required: คือกรณีมี field 'order_id' แต่ค่า blank
+    # ถ้าไม่มี field ตั้งแต่ err แรกจะเป็น Missing body
+    # นายจะให้เราแก้ก้ได้ (จะให้แก้ไงก้บอก -- แต่มันเป็นงี้หลายที่เลยอ่าา TTvTT)
     def test_delete_order_without_order_id(self):
         del_resp = requests.delete(
             self.base_url
@@ -207,6 +211,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "Missing body")
     
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_order_without_status(self):
         order = {
             "flag": "buy",
@@ -228,6 +233,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "status is required")
         
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_order_without_flag(self):
         order = {
             "status": "finished",
@@ -249,6 +255,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "flag is required")
 
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_order_without_pair_symbol(self):
         order = {
             "status": "finished",
@@ -270,6 +277,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "pair_symbol is required")
     
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_order_without_input_amount(self):
         order = {
             "status": "finished",
@@ -291,6 +299,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "input_amount is required")
 
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_order_without_output_amount(self):
         order = {
             "status": "finished",
@@ -415,6 +424,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "Missing body")
     
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_trigger_without_stop_limit(self):
         trigger = {
             "flag": "buy",
@@ -436,6 +446,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "stop_limit is required")
         
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_trigger_without_flag(self):
         trigger = {
             "pair_symbol": "btc-usdt",
@@ -457,6 +468,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "flag is required")
 
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_trigger_without_pair_symbol(self):
         trigger = {
             "flag": "buy",
@@ -478,6 +490,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "pair_symbol is required")
     
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_trigger_without_input_amount(self):
         trigger = {
             "flag": "buy",
@@ -499,6 +512,7 @@ class TestTrading(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "input_amount is required")
 
+    # error เดียวกับ test_delete_order_without_order_id (คิดว่านะ)
     def test_send_trigger_without_output_amount(self):
         trigger = {
             "flag": "buy",
