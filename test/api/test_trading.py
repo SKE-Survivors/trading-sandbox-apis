@@ -68,7 +68,7 @@ class TestTrading(unittest.TestCase):
 
     def test_delete_order_endpoint_happy_path(self):
         order = {
-            "status": "active",
+            "status": "finished",
             "flag": "buy",
             "pair_symbol": "btc-usdt",
             "input_amount": 200,
