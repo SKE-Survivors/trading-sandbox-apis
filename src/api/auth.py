@@ -144,13 +144,13 @@ def user():
         if not token:
             return build_response(status_code=400, body=FAILED_MISSING_TOKEN)
 
+        if not sh.in_session(email, token):
+            return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
+        
         try:
             data = request.json
         except Exception:
             return build_response(status_code=400, body=FAILED_MISSING_BODY)
-
-        if not sh.in_session(email, token):
-            return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
 
         for field in data:
             # note: you can add more field to update here
@@ -171,7 +171,6 @@ def user():
         body = {"STATUS": "SUCCESS", "MESSAGE": f"Update user {user.email}"}
 
     if request.method == "DELETE":
-        ### Why not just use the same error check as put before going into if, this is redundant
         token = request.args.get("token")
 
         if not token:
@@ -179,7 +178,6 @@ def user():
 
         if not sh.in_session(email, token):
             return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
-        ###
 
         user.delete()
         body = {"STATUS": "SUCCESS", "MESSAGE": f"Delete user {user.email}"}
