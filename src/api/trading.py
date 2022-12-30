@@ -1,9 +1,8 @@
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
-from mongoengine import errors
 from api.constants.message import *
 from handler import DatabaseHandler, SessionHandler
-from utils import build_response, map_pair
+from utils import build_response
 
 trading_endpoint = Blueprint('trading', __name__)
 CORS(trading_endpoint)
@@ -36,12 +35,16 @@ def order():
     if request.method == "DELETE":
         try:
             data = request.json
+        except Exception:
+            return build_response(status_code=400, body=FAILED_MISSING_BODY)
+        
+        try:
             order_id = data["order_id"]
-        except Exception as err:
-            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
-
-        if not order_id:
+            if not order_id:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_ORDER_ID)
+
 
         order = dbh.find_order(order_id)
         if not order:
@@ -54,7 +57,7 @@ def order():
                 "STATUS": "FAILED",
                 "MESSAGE": f"Cancel order not allow: {err}"
             }
-            return build_response(status_code=400, body=body, err=err)
+            return build_response(status_code=400, body=body)
 
         body = {"STATUS": "SUCCESS", "MESSAGE": "Cancel order Successfully"}
         return build_response(status_code=200, body=body)
@@ -62,24 +65,44 @@ def order():
     if request.method == "POST":
         try:
             data = request.json
-            status = data["status"]
-            order_flag = data["flag"]
-            pair_symbol = data["pair_symbol"]
-            input_amount = data["input_amount"]
-            output_amount = data["output_amount"]
-        except Exception as err:
-            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
+        except Exception:
+            return build_response(status_code=400, body=FAILED_MISSING_BODY)
 
-        if not status:
+        try:
+            status = data["status"]
+            if not status:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_STATUS)
-        if not order_flag:
+        
+        try:
+            order_flag = data["flag"]
+            if not order_flag:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_FLAG)
-        if not pair_symbol:
+        
+        try:
+            pair_symbol = data["pair_symbol"]
+            if not pair_symbol:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_PAIR)
-        if not input_amount:
+        
+        try:
+            input_amount = data["input_amount"]
+            if not input_amount:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_INPUT_AMOUNT)
-        if not output_amount:
+        
+        try:
+            output_amount = data["output_amount"]
+            if not output_amount:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
+        
 
         try:
             order = user.create_order(
@@ -119,11 +142,14 @@ def trigger():
     if request.method == "DELETE":
         try:
             data = request.json
+        except Exception: 
+            return build_response(status_code=400, body=FAILED_MISSING_BODY)
+        
+        try:
             trigger_id = data["trigger_id"]
-        except Exception as err: 
-            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
-
-        if not trigger_id:
+            if not trigger_id:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_TRIGGER_ID)
 
         trigger = dbh.find_trigger(trigger_id)
@@ -145,25 +171,44 @@ def trigger():
     if request.method == "POST":
         try:
             data = request.json
+        except Exception:
+            return build_response(status_code=400, body=FAILED_MISSING_BODY)
+        
+        try:
             order_flag = data["flag"]
-            pair_symbol = data["pair_symbol"]
-            input_amount = data["input_amount"]
-            output_amount = data["output_amount"]
-            stop_price = data["stop_price"]
-        except Exception as err:
-            return build_response(status_code=400, body=FAILED_MISSING_BODY, err=err)
-
-        if not order_flag:
+            if not order_flag:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_FLAG)
-        if not pair_symbol:
+        
+        try:
+            pair_symbol = data["pair_symbol"]
+            if not pair_symbol:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_PAIR)
-        if not input_amount:
+        
+        try:
+            input_amount = data["input_amount"]
+            if not input_amount:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_INPUT_AMOUNT)
-        if not output_amount:
+        
+        try:
+            output_amount = data["output_amount"]
+            if not output_amount:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
-        if not stop_price:
+        
+        try:
+            stop_price = data["stop_price"]
+            if not stop_price:
+                raise
+        except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_STOP_LIMIT)
-
+        
         try:
             trigger = user.create_trigger(
                 order_flag,

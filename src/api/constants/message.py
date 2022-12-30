@@ -1,3 +1,4 @@
+FAILED_REQUIRED_USERNAME = {"STATUS": "FAILED", "MESSAGE": f"Username is required"}
 FAILED_REQUIRED_EMAIL = {"STATUS": "FAILED", "MESSAGE": f"Email is required"}
 FAILED_REQUIRED_PASSWORD = {"STATUS": "FAILED", "MESSAGE": f"Password is required"}
 FAILED_WRONG_PASSWORD = {"STATUS": "FAILED", "MESSAGE": f"Wrong password"}
@@ -21,4 +22,4 @@ FAILED_REQUIRE_OUTPUT_AMOUNT = {"STATUS": "FAILED", "MESSAGE": f"output_amount i
 
 FAILED_TRIGGER_NOT_EXIST = {"STATUS": "FAILED", "MESSAGE": f"Trigger does not exist"}
 FAILED_REQUIRE_TRIGGER_ID = {"STATUS": "FAILED", "MESSAGE": f"trigger_id is required"}
-FAILED_REQUIRE_STOP_LIMIT = {"STATUS": "FAILED", "MESSAGE": f"stop_price is required"}
+FAILED_REQUIRE_STOP_LIMIT = {"STATUS": "FAILED", "MESSAGE": f"stop_limit is required"}

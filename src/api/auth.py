@@ -22,19 +22,34 @@ def index():
 def signup():
     try:
         data = request.json
-        username = data["username"]
-        email = data["email"]
-        password = data["password"]
-        confirm_password = data["confirm-password"]
     except Exception:
         return build_response(status_code=400, body=FAILED_MISSING_BODY)
-
-    if not email:
+    
+    try:
+        username = data["username"]
+    except Exception:
+        return build_response(status_code=400, body=FAILED_MISSING_BODY)
+    
+    try:
+        email = data["email"]
+        if not email:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
-    if not password:
+    
+    try:
+        password = data["password"]
+        if not password:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_PASSWORD)
-    if confirm_password != password:
-        return build_response(status_code=400, body=FAILED_WRONG_CONFIRM_PASSWORD)
+    
+    try:
+        confirm_password = data["confirm-password"]
+        if confirm_password != password:
+            return build_response(status_code=400, body=FAILED_WRONG_CONFIRM_PASSWORD)
+    except Exception:
+        return build_response(status_code=400, body=FAILED_REQUIRED_CONFIRM_PASSWORD)
 
     if dbh.find_user(email):
         body = FAILED_USER_EXIST
@@ -59,15 +74,23 @@ def signup():
 def login():
     try:
         data = request.json
-        email = data["email"]
-        password = data["password"]
     except Exception:
         return build_response(status_code=400, body=FAILED_MISSING_BODY)
-
-    if not email:
+    
+    try:
+        email = data["email"]
+        if not email:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
-    if not password:
+    
+    try:
+        password = data["password"]
+        if not password:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_PASSWORD)
+
 
     # check email and password
     user = dbh.find_user(email)
