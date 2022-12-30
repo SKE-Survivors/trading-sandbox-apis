@@ -249,53 +249,6 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(resp_logout_body["STATUS"], "FAILED")
         self.assertEqual(resp_logout_body["MESSAGE"], "User does not exist")
 
-    def test_check_endpoint_happy_path(self):
-        body = {"email": self.sec_email, "password": "eemail"}
-        resp = requests.post(
-            self.base_url + "/api/auth/login",
-            data=json.dumps(body),
-            headers=self.headers,
-        )
-        resp_body = resp.json()
-
-        resp_check = requests.get(
-            self.base_url
-            + "/api/auth/check?email="
-            + self.sec_email
-            + "&token="
-            + resp_body["MESSAGE"]["token"],
-            headers=self.headers,
-        )
-        self.assertEqual(resp_check.status_code, 200)
-
-        resp_check_body = resp_check.json()
-        self.assertEqual(resp_check_body["STATUS"], "SUCCESS")
-        self.assertEqual(resp_check_body["MESSAGE"], "User is authorized")
-
-    # อันนี้เราตั้งใจให้ไม่ failed นะ, แต่ดูๆไปเหมือน เส้นนี้จะไม่ได้ใช้แล้ว
-    # ถ้าจะให้แก้ยังไงก้บอกมาละกัน
-    def test_check_endpoint_with_unauthorized_user(self):
-        resp_check = requests.get(
-            self.base_url + "/api/auth/check?email=testemail@email.com&token=123",
-            headers=self.headers,
-        )
-        self.assertEqual(resp_check.status_code, 200)
-
-        resp_check_body = resp_check.json()
-        self.assertEqual(resp_check_body["STATUS"], "SUCCESS")
-        self.assertEqual(resp_check_body["MESSAGE"], "User is not authorized")
-
-    def test_check_endpoint_with_non_existing_user(self):
-        resp_check = requests.get(
-            self.base_url + "/api/auth/check?email=fake@email.com&token=123",
-            headers=self.headers,
-        )
-        self.assertEqual(resp_check.status_code, 400)
-
-        resp_check_body = resp_check.json()
-        self.assertEqual(resp_check_body["STATUS"], "FAILED")
-        self.assertEqual(resp_check_body["MESSAGE"], "User does not exist")
-
     def test_user_endpoint_get_user_data_happy_path(self):
         resp = requests.get(self.base_url + "/api/auth/user?email=" + self.email)
         resp_body = resp.json()

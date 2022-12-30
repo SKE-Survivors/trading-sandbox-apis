@@ -26,8 +26,8 @@ def signup():
         email = data["email"]
         password = data["password"]
         confirm_password = data["confirm-password"]
-    except Exception as err:
-        return build_response(status_code=400, err=err)
+    except Exception:
+        return build_response(status_code=400, body=FAILED_MISSING_BODY)
 
     if not email:
         return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
@@ -61,8 +61,8 @@ def login():
         data = request.json
         email = data["email"]
         password = data["password"]
-    except Exception as err:
-        return build_response(status_code=400, err=err)
+    except Exception:
+        return build_response(status_code=400, body=FAILED_MISSING_BODY)
 
     if not email:
         return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
@@ -99,23 +99,6 @@ def logout():
 
     sh.remove_session(email)
     body = {"STATUS": "SUCCESS", "MESSAGE": f"Logout successfully"}
-    return build_response(status_code=200, body=body)
-
-
-# for front-end to call before load page
-@auth_endpoint.route("/check")
-@cross_origin()
-def check():
-    email = request.args.get("email")
-    token = request.args.get("token")
-
-    if not dbh.find_user(email):
-        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
-
-    msg = "User is authorized" if sh.in_session(
-        email, token) else "User is not authorized"
-
-    body = {"STATUS": "SUCCESS", "MESSAGE": msg}
     return build_response(status_code=200, body=body)
 
 
