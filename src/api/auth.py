@@ -52,8 +52,7 @@ def signup():
         return build_response(status_code=400, body=FAILED_REQUIRED_CONFIRM_PASSWORD)
 
     if dbh.find_user(email):
-        body = FAILED_USER_EXIST
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_EXIST)
 
     try:
         dbh.add_user(

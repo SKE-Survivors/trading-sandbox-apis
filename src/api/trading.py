@@ -166,7 +166,7 @@ def trigger():
             return build_response(status_code=400, body=body)
 
         body = {"STATUS": "SUCCESS", "MESSAGE": "Cancel trigger Successfully"}
-        return build_response(status_code=201, body=body)
+        return build_response(status_code=200, body=body)
 
     if request.method == "POST":
         try:
