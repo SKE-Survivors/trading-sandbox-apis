@@ -202,9 +202,8 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(resp_body["STATUS"], "FAILED")
         self.assertEqual(resp_body["MESSAGE"], "User does not exist")
 
-    # User does not exist: นายต้องเพิ่ม user ก่อน...
     def test_login_with_wrong_password(self):
-        body = {"email": "testemail@email.com", "password": "wrong_password"}
+        body = {"email": self.sec_email, "password": "wrong_password"}
         resp = requests.post(
             self.base_url + "/api/auth/login",
             data=json.dumps(body),
@@ -374,13 +373,20 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(update_resp_body["STATUS"], "FAILED")
         self.assertEqual(update_resp_body["MESSAGE"], "Missing argument: token")
         
-    # Permission denied: นายต้องใส่ token ที่ถูกก่อน มันถึงจะ check body?
     def test_user_endpoint_with_missing_body(self):
+        resp = requests.post(
+            self.base_url + "/api/auth/login",
+            data=json.dumps({"email": self.sec_email, "password": "eemail"}),
+            headers=self.headers,
+        )
+        resp_body = resp.json()
+        
         update_resp = requests.put(
             self.base_url
             + "/api/auth/user?email="
             + self.sec_email
-            + "&token=123",
+            + "&token="
+            + resp_body["MESSAGE"]["token"],
             headers=self.headers,
         )
         self.assertEqual(update_resp.status_code, 400)

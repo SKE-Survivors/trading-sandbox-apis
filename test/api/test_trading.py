@@ -66,10 +66,9 @@ class TestTrading(unittest.TestCase):
             headers=self.headers,
         )
 
-    # Finished oredr not allow to delete
     def test_delete_order_endpoint_happy_path(self):
         order = {
-            "status": "finished",
+            "status": "active",
             "flag": "buy",
             "pair_symbol": "btc-usdt",
             "input_amount": 200,
@@ -97,7 +96,7 @@ class TestTrading(unittest.TestCase):
             data=json.dumps({"order_id": order["id"]}),
             headers=self.headers,
         )
-        self.assertEqual(del_resp.status_code, 201)
+        self.assertEqual(del_resp.status_code, 200)
         del_resp_body = del_resp.json()
         self.assertEqual(del_resp_body["STATUS"], "SUCCESS")
         self.assertEqual(del_resp_body["MESSAGE"], "Cancel order Successfully")
