@@ -22,23 +22,37 @@ def index():
 def signup():
     try:
         data = request.json
+    except Exception:
+        return build_response(status_code=400, body=FAILED_MISSING_BODY)
+    
+    try:
         username = data["username"]
+    except Exception:
+        return build_response(status_code=400, body=FAILED_MISSING_BODY)
+    
+    try:
         email = data["email"]
-        password = data["password"]
-        confirm_password = data["confirm-password"]
-    except Exception as err:
-        return build_response(status_code=400, err=err)
-
-    if not email:
+        if not email:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
-    if not password:
+    
+    try:
+        password = data["password"]
+        if not password:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_PASSWORD)
-    if confirm_password != password:
-        return build_response(status_code=400, body=FAILED_WRONG_CONFIRM_PASSWORD)
+    
+    try:
+        confirm_password = data["confirm-password"]
+        if confirm_password != password:
+            return build_response(status_code=400, body=FAILED_WRONG_CONFIRM_PASSWORD)
+    except Exception:
+        return build_response(status_code=400, body=FAILED_REQUIRED_CONFIRM_PASSWORD)
 
     if dbh.find_user(email):
-        body = FAILED_USER_EXIST
-        return build_response(status_code=400, body=body)
+        return build_response(status_code=400, body=FAILED_USER_EXIST)
 
     try:
         dbh.add_user(
@@ -59,15 +73,23 @@ def signup():
 def login():
     try:
         data = request.json
+    except Exception:
+        return build_response(status_code=400, body=FAILED_MISSING_BODY)
+    
+    try:
         email = data["email"]
-        password = data["password"]
-    except Exception as err:
-        return build_response(status_code=400, err=err)
-
-    if not email:
+        if not email:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_EMAIL)
-    if not password:
+    
+    try:
+        password = data["password"]
+        if not password:
+            raise
+    except Exception:
         return build_response(status_code=400, body=FAILED_REQUIRED_PASSWORD)
+
 
     # check email and password
     user = dbh.find_user(email)
@@ -102,23 +124,6 @@ def logout():
     return build_response(status_code=200, body=body)
 
 
-# for front-end to call before load page
-@auth_endpoint.route("/check")
-@cross_origin()
-def check():
-    email = request.args.get("email")
-    token = request.args.get("token")
-
-    if not dbh.find_user(email):
-        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
-
-    msg = "User is authorized" if sh.in_session(
-        email, token) else "User is not authorized"
-
-    body = {"STATUS": "SUCCESS", "MESSAGE": msg}
-    return build_response(status_code=200, body=body)
-
-
 @auth_endpoint.route("/user", methods=['GET', 'PUT', 'DELETE'])
 @cross_origin()
 def user():
@@ -144,13 +149,13 @@ def user():
         if not token:
             return build_response(status_code=400, body=FAILED_MISSING_TOKEN)
 
+        if not sh.in_session(email, token):
+            return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
+        
         try:
             data = request.json
         except Exception:
             return build_response(status_code=400, body=FAILED_MISSING_BODY)
-
-        if not sh.in_session(email, token):
-            return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
 
         for field in data:
             # note: you can add more field to update here

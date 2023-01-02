@@ -19,17 +19,16 @@ def index():
 @cross_origin()
 def pairs():
     data = [
-        "bnb-busd", "btc-busd", "aud-busd", "ada-busd", "xrp-busd", "ltc-busd",
-        "eth-busd", "sol-busd", "cake-busd", "gmt-busd", "shib-busd",
-        "doge-busd", "bnb-usdt", "btc-usdt", "aud-usdt", "ada-usdt",
-        "xrp-usdt", "ltc-usdt", "eth-usdt", "sol-usdt", "cake-usdt",
-        "gmt-usdt", "shib-usdt", "doge-usdt", "ada-bnb", "xrp-bnb", "ltc-bnb",
-        "sol-bnb", "cake-bnb", "gmt-bnb", "bnb-btc", "ada-btc", "xrp-btc",
-        "ltc-btc", "eth-btc", "sol-btc", "cake-btc", "gmt-btc", "doge-btc",
-        "bnb-dai", "btc-dai", "eth-dai", "busd-rub", "usdt-rub", "bnb-rub",
-        "btc-rub", "ada-rub", "xrp-rub", "ltc-rub", "eth-rub", "sol-rub",
-        "doge-rub", "bnb-aud", "btc-aud", "ada-aud", "xrp-aud", "eth-aud",
-        "sol-aud", "gmt-aud", "shib-aud", "doge-aud", "bnb-eth", "shib-doge"
+        "btc-usdt",
+        "eth-usdt",
+        "eth-btc",
+        "bnb-usdt",
+        "bnb-btc",
+        "xrp-usdt",
+        "xrp-btc",
+        "bnb-eth",
+        "xrp-bnb",
+        "xrp-eth",
     ]
     body = {"STATUS": "SUCCESS", "MESSAGE": data}
     return build_response(status_code=200, body=body)
