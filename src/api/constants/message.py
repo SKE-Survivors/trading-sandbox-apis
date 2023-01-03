@@ -23,3 +23,5 @@ FAILED_REQUIRE_OUTPUT_AMOUNT = {"STATUS": "FAILED", "MESSAGE": f"output_amount i
 FAILED_TRIGGER_NOT_EXIST = {"STATUS": "FAILED", "MESSAGE": f"Trigger does not exist"}
 FAILED_REQUIRE_TRIGGER_ID = {"STATUS": "FAILED", "MESSAGE": f"trigger_id is required"}
 FAILED_REQUIRE_STOP_LIMIT = {"STATUS": "FAILED", "MESSAGE": f"stop_limit is required"}
+
+FAILED_REQUIRE_PRICE = {"STATUS": "FAILED", "MESSAGE": f"price is required"}
