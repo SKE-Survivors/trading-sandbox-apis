@@ -4,6 +4,9 @@ from mongoengine import connect, Document, SequenceField, EmailField, DateTimeFi
 from decouple import config
 from model.user import User
 from utils.map_pair_symbol import map_pair
+from handler.order import OrderHandler
+
+oh = OrderHandler()
 
 
 class Order(Document):
@@ -41,8 +44,14 @@ class Order(Document):
         user.wallet[input_token] -= self.input_amount
         user.wallet[output_token] += self.output_amount
         user.save()
-        
-        # todo: remove order from redis
+
+        try:
+            oh.remove_order(self)
+        except Exception as err:
+            user.wallet[input_token] += self.input_amount
+            user.wallet[output_token] -= self.output_amount
+            user.save()
+            raise err
 
         self.update(status="finished")
         print(f"Executed order id: {self.id}, for user: {self.user_email}")
@@ -51,9 +60,14 @@ class Order(Document):
         if self.status == "finished":
             raise Exception(f"Cancel not allow to finished order")
 
-        # todo: remove order from redis
-
         self.update(status="cancel")
+
+        try:
+            oh.remove_order(self)
+        except Exception as err:
+            self.update(status="active")
+            raise err
+
         print(f"Canceled order id: {self.id}, for user: {self.user_email}")
 
 

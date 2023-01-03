@@ -1,7 +1,9 @@
 from mongoengine import connect, Document, SequenceField, EmailField, IntField, StringField, FloatField
 from decouple import config
 from model.order import Order
+from handler.order import OrderHandler
 
+oh = OrderHandler()
 
 class Trigger(Document):
     id = SequenceField(primary_key=True)
@@ -26,9 +28,12 @@ class Trigger(Document):
     def trigger(self):
         order = self.order()
         if order.status == "draft":
-            # todo: add order to redis
-            
             order.update(status="active")
+            try:
+                oh.add_order(order)
+            except Exception as err:
+                order.update(status="draft")
+                raise err
 
         # todo: remove trigger from redis
         

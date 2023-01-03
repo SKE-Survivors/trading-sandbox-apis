@@ -3,7 +3,9 @@ from decouple import config
 from model.order import Order
 from model.trigger import Trigger
 from utils import map_pair
+from handler.order import OrderHandler
 
+oh = OrderHandler()
 
 class User(Document):
     email = EmailField(primary_key=True, required=True)
@@ -101,16 +103,18 @@ class User(Document):
             output_amount=output_amount,
         ).save()
         
+        try:
+            oh.add_order(order)
+        except Exception as err:
+            order.delete()
+            raise err
+        
         if order.status == "finished":
             try:
                 self.execute_order(order)
             except Exception as err:
                 order.delete()
-                raise Exception(f"Execute order failed: {err}")
-
-        if order.status == "active":
-            # todo: add order redis
-            pass
+                raise Exception(f"Execute order failed: {err}")        
 
         print(f"Added order id: {order.id}, for user: {self.email}")
         return order
