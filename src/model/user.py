@@ -3,9 +3,10 @@ from decouple import config
 from model.order import Order
 from model.trigger import Trigger
 from utils import map_pair
-from handler.order import OrderHandler
+from handler import OrderHandler, TriggerHandler
 
 oh = OrderHandler()
+th = TriggerHandler()
 
 class User(Document):
     email = EmailField(primary_key=True, required=True)
@@ -153,8 +154,13 @@ class User(Document):
             order.delete()
             raise err
         
-        # todo: add trigger to redis
-
+        try:
+            th.add_trigger(trigger)
+        except Exception as err:
+            trigger.delete()
+            order.delete()
+            raise err
+            
         print(f"Added trigger id: {trigger.id}, for user: {self.email}")
 
     # delete trigger

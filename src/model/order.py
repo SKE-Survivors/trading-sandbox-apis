@@ -4,7 +4,7 @@ from mongoengine import connect, Document, SequenceField, EmailField, DateTimeFi
 from decouple import config
 from model.user import User
 from utils.map_pair_symbol import map_pair
-from handler.order import OrderHandler
+from handler import OrderHandler
 
 oh = OrderHandler()
 

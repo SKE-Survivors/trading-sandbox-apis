@@ -1,9 +1,11 @@
 from mongoengine import connect, Document, SequenceField, EmailField, IntField, StringField, FloatField
 from decouple import config
 from model.order import Order
-from handler.order import OrderHandler
+from handler import OrderHandler, TriggerHandler
 
 oh = OrderHandler()
+th = TriggerHandler()
+
 
 class Trigger(Document):
     id = SequenceField(primary_key=True)
@@ -35,8 +37,8 @@ class Trigger(Document):
                 order.update(status="draft")
                 raise err
 
-        # todo: remove trigger from redis
-        
+        # todo: check rollback
+        th.remove_trigger(self)
         self.delete()
         print(f"Trigger id: {self.id}, has been trigger")
 
@@ -45,11 +47,10 @@ class Trigger(Document):
         if order.status == "draft":
             order.delete()
 
-        # todo: remove trigger from redis
-        
+        # todo: check rollback
+        th.remove_trigger(self)
         self.delete()
         print(f"Canceled trigger id: {self.id}, for user: {self.user_email}")
-        
 
 
 # ! temporary: tools to add sections
