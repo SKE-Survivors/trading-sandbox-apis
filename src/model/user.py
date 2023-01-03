@@ -116,20 +116,17 @@ class User(Document):
         return order
 
     def execute_order(self, order: Order):
-        if order.status == "draft":
-            raise Exception(f"Draft order not allow to be execute")
+        if order.user_email != self.email:
+            raise Exception(f"Order does not owned by user: {self.email}")
         
-        order.execute(self.email)
-        
-        input_token, output_token = map_pair(order.flag, order.pair_symbol)
-        self.wallet[input_token] -= order.input_amount
-        self.wallet[output_token] += order.output_amount
-        self.save()
-        
+        order.execute()
         print(f"Executed order id: {order.id}, for user: {self.email}")
 
     def cancel_order(self, order: Order):
-        order.cancel(self.email)
+        if order.user_email != self.email:
+            raise Exception(f"Order does not owned by user: {self.email}")
+        
+        order.cancel()
         print(f"Canceled order id: {order.id}, for user: {self.email}")
 
     def create_trigger(self, flag, pair_symbol, input_amount, output_amount, stop_price):
@@ -158,7 +155,10 @@ class User(Document):
 
     # delete trigger
     def cancel_trigger(self, trigger: Trigger):
-        trigger.cancel(self.email)
+        if trigger.user_email != self.email:
+            raise Exception(f"Trigger does not owned by user: {self.email}")
+        
+        trigger.cancel()
         print(f"Canceled order id: {trigger.id}, for user: {self.email}")
 
 

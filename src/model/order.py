@@ -2,6 +2,8 @@ import datetime
 
 from mongoengine import connect, Document, SequenceField, EmailField, DateTimeField, StringField, FloatField
 from decouple import config
+from model.user import User
+from utils.map_pair_symbol import map_pair
 
 
 class Order(Document):
@@ -26,28 +28,33 @@ class Order(Document):
             "output_amount": self.output_amount,
         }
 
-    # for user to call only
-    def execute(self, user_email):
-        if self.user_email != user_email:
-            raise Exception(f"Order does not owned by user: {user_email}")
+    def user(self):
+        return User.objects.get(email=self.user_email)
+
+    def execute(self):
+        if self.status == "draft":
+            raise Exception(f"Draft order not allow to be execute")
+
+        user = self.user()
+        input_token, output_token = map_pair(self.flag, self.pair_symbol)
+
+        user.wallet[input_token] -= self.input_amount
+        user.wallet[output_token] += self.output_amount
+        user.save()
         
         # todo: remove order from redis
 
         self.update(status="finished")
-        print(f"Executed order id: {self.id}, for user: {user_email}")
+        print(f"Executed order id: {self.id}, for user: {self.user_email}")
 
-    # for user to call only
-    def cancel(self, user_email):
-        if self.user_email != user_email:
-            raise Exception(f"Order does not owned by user: {user_email}")
-
+    def cancel(self):
         if self.status == "finished":
             raise Exception(f"Cancel not allow to finished order")
 
         # todo: remove order from redis
-        
+
         self.update(status="cancel")
-        print(f"Canceled order id: {self.id}, for user: {user_email}")
+        print(f"Canceled order id: {self.id}, for user: {self.user_email}")
 
 
 # ! temporary: tools to add sections

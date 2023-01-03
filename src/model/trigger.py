@@ -32,20 +32,19 @@ class Trigger(Document):
 
         # todo: remove trigger from redis
         
+        self.delete()
         print(f"Trigger id: {self.id}, has been trigger")
-        return self.delete()
 
-    def cancel(self, user_email):
-        if self.user_email != user_email:
-            raise Exception(f"Trigger does not owned by user: {user_email}")
-
+    def cancel(self):
         order = self.order()
         if order.status == "draft":
             order.delete()
 
         # todo: remove trigger from redis
         
-        return self.delete()
+        self.delete()
+        print(f"Canceled trigger id: {self.id}, for user: {self.user_email}")
+        
 
 
 # ! temporary: tools to add sections
