@@ -102,7 +102,6 @@ def order():
                 raise
         except Exception:
             return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
-        
 
         try:
             order = user.create_order(

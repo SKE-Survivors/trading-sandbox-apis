@@ -1,7 +1,6 @@
-import datetime
 import redis
 import pickle
-from typing import List, Tuple
+from typing import List
 from decouple import config
 from model.order import Order
 
@@ -55,15 +54,9 @@ class OrderHandler:
         orders = self.get_orders_at(pair_symbol, price)
         orders.sort(key=lambda o: o.timestamp, reverse=False)
 
-        buy_orders: List[Order] = []
-        sell_orders: List[Order] = []
-
-        for order in orders:
-            if order.flag == "buy":
-                buy_orders.append(order)
-            else:
-                sell_orders.append(order)
-
+        buy_orders: List[Order] = filter(lambda o: o.flag == "buy", orders)
+        sell_orders: List[Order] = filter(lambda o: o.flag == "sell", orders)
+        
         # update redis
         if buy_orders[0].output_amount > sell_orders[0].input_amount:
             base = buy_orders[0]
