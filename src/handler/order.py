@@ -25,7 +25,8 @@ class OrderHandler:
         hashname = self.create_hashname(order.pair_symbol, price)
 
         if self.client.hexists(hashname, order.id):
-            raise Exception("Duplicate order")
+            # raise Exception("Duplicate order")
+            self.remove_order(order)
 
         # add order to redis
         pickled_order = pickle.dumps(order)
@@ -56,7 +57,7 @@ class OrderHandler:
 
         buy_orders: List[Order] = filter(lambda o: o.flag == "buy", orders)
         sell_orders: List[Order] = filter(lambda o: o.flag == "sell", orders)
-        
+
         # update redis
         if buy_orders[0].output_amount > sell_orders[0].input_amount:
             base = buy_orders[0]
