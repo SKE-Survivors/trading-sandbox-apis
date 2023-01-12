@@ -1,14 +1,11 @@
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 from api.constants.message import *
-from handler import OrderHandler, TriggerHandler
+from model import Order, Trigger
 from utils import build_response
 
 service_endpoint = Blueprint('service', __name__)
 CORS(service_endpoint)
-
-oh = OrderHandler()
-th = TriggerHandler()
 
 
 @service_endpoint.route('/')
@@ -40,7 +37,7 @@ def update_market():
             return build_response(status_code=400, body=FAILED_REQUIRE_PRICE)
 
         try:
-            orders = oh.get_orders_at(pair_symbol, float(price))
+            orders = Order.redis_get_at(pair_symbol, float(price))
             map(lambda o: o.execute(), orders)
         except Exception as err:
             body = {
@@ -50,7 +47,7 @@ def update_market():
             return build_response(status_code=400, body=body)
 
         try:
-            triggers = th.get_triggers_at(pair_symbol, float(price))
+            triggers = Trigger.redis_get_at(pair_symbol, float(price))
             map(lambda t: t.trigger(), triggers)
         except Exception as err:
             body = {

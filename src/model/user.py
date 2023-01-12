@@ -1,12 +1,7 @@
 from mongoengine import connect, Document, StringField, EmailField, DictField, BinaryField
 from decouple import config
-from model.order import Order
-from model.trigger import Trigger
+from model import Order, Trigger
 from utils import map_pair
-from handler import OrderHandler, TriggerHandler
-
-oh = OrderHandler()
-th = TriggerHandler()
 
 class User(Document):
     email = EmailField(primary_key=True, required=True)
@@ -105,7 +100,7 @@ class User(Document):
         ).save()
         
         try:
-            oh.add_order(order)
+            order.redis_add()
         except Exception as err:
             order.delete()
             raise err
@@ -155,7 +150,7 @@ class User(Document):
             raise err
         
         try:
-            th.add_trigger(trigger)
+            trigger.redis_add()
         except Exception as err:
             trigger.delete()
             order.delete()

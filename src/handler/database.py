@@ -1,8 +1,6 @@
 from mongoengine import connect
 from decouple import config
-from model.user import User
-from model.order import Order
-from model.trigger import Trigger
+from model.user import User, Order, Trigger
 
 
 class DatabaseHandler:
