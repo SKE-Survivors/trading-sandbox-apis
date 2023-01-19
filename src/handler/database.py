@@ -167,7 +167,7 @@ class DatabaseHandler:
             self.redis_order_remove(order)
         except Exception as err:
             order.update(status=old_status)
-            raise Exception(f"Add trigger to redis failed: {err}")
+            raise Exception(f"Remove trigger from redis failed: {err}")
 
         print(f"Canceled order id: {order.id}, for user: {order.user_email}")
 
@@ -320,7 +320,7 @@ class DatabaseHandler:
     # Redis | Trigger
 
     def redis_trigger_hashname(self, pair_symbol: str, price: float) -> str:
-        return "::".join(["Matching::Trigger", pair_symbol, price])
+        return "::".join(["Matching::Trigger", pair_symbol, str(price)])
 
     def redis_trigger_remove(self, trigger: Trigger):
         hashname = self.redis_trigger_hashname(trigger.pair_symbol, trigger.stop_price)

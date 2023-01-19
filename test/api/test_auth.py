@@ -258,13 +258,8 @@ class TestAuth(unittest.TestCase):
             {
                 "email": self.email,
                 "username": "gmail",
-                "wallet": {"usdt": 1000.0, "btc": 1000.0, "eth": 1000.0, "bnb": 1000.0},
-                "available_wallet": {
-                    "usdt": 1000.0,
-                    "btc": 1000.0,
-                    "eth": 1000.0,
-                    "bnb": 1000.0,
-                },
+                "wallet": {"usdt": 500.0,"btc": 500.0,"eth": 0,"bnb": 0,"xrp": 0},
+                "available_wallet": {"usdt": 500.0,"btc": 500.0,"eth": 0,"bnb": 0,"xrp": 0},
                 "orders": [],
                 "triggers": [],
             },
