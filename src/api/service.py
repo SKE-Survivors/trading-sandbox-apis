@@ -37,8 +37,8 @@ def update_market():
             return build_response(status_code=400, body=FAILED_REQUIRE_PRICE)
 
         try:
-            orders = Order.redis_get_at(pair_symbol, float(price))
-            map(lambda o: o.execute(), orders)
+            orders = Order.redis_get_orders_at(pair_symbol, float(price))
+            map(lambda o: o.execute_order(), orders)
         except Exception as err:
             body = {
                 "STATUS": "FAILED",
@@ -47,7 +47,7 @@ def update_market():
             return build_response(status_code=400, body=body)
 
         try:
-            triggers = Trigger.redis_get_at(pair_symbol, float(price))
+            triggers = Trigger.redis_get_triggers_at(pair_symbol, float(price))
             map(lambda t: t.trigger(), triggers)
         except Exception as err:
             body = {

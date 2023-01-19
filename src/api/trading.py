@@ -51,7 +51,7 @@ def order():
             return build_response(status_code=400, body=FAILED_ORDER_NOT_EXIST)
 
         try:
-            user.cancel_order(order)
+            dbh.cancel_order(order, user)
         except Exception as err:
             body = {
                 "STATUS": "FAILED",
@@ -104,13 +104,7 @@ def order():
             return build_response(status_code=400, body=FAILED_REQUIRE_OUTPUT_AMOUNT)
 
         try:
-            order = user.create_order(
-                status,
-                order_flag,
-                pair_symbol,
-                input_amount,
-                output_amount,
-            )
+            dbh.create_order(user, status, order_flag, pair_symbol, input_amount, output_amount)
         except Exception as err:
             body = {
                 "STATUS": "FAILED",
@@ -156,7 +150,7 @@ def trigger():
             return build_response(status_code=400, body=FAILED_TRIGGER_NOT_EXIST)
 
         try:
-            user.cancel_trigger(trigger)
+            dbh.cancel_trigger(trigger, user)
         except Exception as err:
             body = {
                 "STATUS": "FAILED",
@@ -209,13 +203,7 @@ def trigger():
             return build_response(status_code=400, body=FAILED_REQUIRE_STOP_LIMIT)
         
         try:
-            trigger = user.create_trigger(
-                order_flag,
-                pair_symbol,
-                input_amount,
-                output_amount,
-                stop_price,
-            )
+            dbh.create_trigger(user, order_flag, pair_symbol, input_amount, output_amount, stop_price)
         except Exception as err:
             body = {
                 "STATUS": "FAILED",

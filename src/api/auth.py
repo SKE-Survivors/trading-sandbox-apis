@@ -55,7 +55,7 @@ def signup():
         return build_response(status_code=400, body=FAILED_USER_EXIST)
 
     try:
-        dbh.add_user(
+        dbh.create_user(
             email=email,
             username=username,
             password=encode_pwd(password),
@@ -184,7 +184,7 @@ def user():
         if not sh.in_session(email, token):
             return build_response(status_code=400, body=FAILED_PERMISSION_DENIED)
 
-        user.delete()
+        dbh.delete_user(user)
         body = {"STATUS": "SUCCESS", "MESSAGE": f"Delete user {user.email}"}
 
     return build_response(status_code=201, body=body)

@@ -18,7 +18,7 @@ def handle_authorize(remote, _token, user_info):
         user = dbh.find_user(user_info["email"])
         # (if not) create user, add to database
         if not user:
-            user = dbh.add_user(
+            user = dbh.create_user(
                 email=user_info["email"],
                 username=user_info["name"],
                 password=b"",  # or None

@@ -37,6 +37,6 @@ def pairs():
 @info_endpoint.route("/orders", methods=["GET"])
 @cross_origin()
 def orders():
-    data = dbh.orders()
+    data = dbh.find_all_orders()
     body = {"STATUS": "SUCCESS", "MESSAGE": data}
     return build_response(status_code=200, body=body)
