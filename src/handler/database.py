@@ -4,7 +4,7 @@ from mongoengine import connect
 from typing import List
 from decouple import config
 from model.user import User, Order, Trigger
-from utils.map_pair_symbol import map_pair
+from utils import map_pair, price_rounder
 
 
 class DatabaseHandler:
@@ -230,7 +230,7 @@ class DatabaseHandler:
     # Redis | Order
 
     def redis_order_hashname(self, pair_symbol: str, price: float) -> str:
-        return "::".join(["Matching::Order", pair_symbol, str(price)])
+        return "::".join(["Matching::Order", pair_symbol, str(price_rounder(pair_symbol, price))])
 
     def redis_order_remove(self, order: Order):
         hashname = self.redis_order_hashname(order.pair_symbol, order.price())
@@ -320,7 +320,7 @@ class DatabaseHandler:
     # Redis | Trigger
 
     def redis_trigger_hashname(self, pair_symbol: str, price: float) -> str:
-        return "::".join(["Matching::Trigger", pair_symbol, str(price)])
+        return "::".join(["Matching::Trigger", pair_symbol, str(price_rounder(pair_symbol, price))])
 
     def redis_trigger_remove(self, trigger: Trigger):
         hashname = self.redis_trigger_hashname(trigger.pair_symbol, trigger.stop_price)
