@@ -80,7 +80,15 @@ class DatabaseHandler:
 
     # Database | Execution | Order
 
-    def create_order(self, user: User, status, flag, pair_symbol, input_amount, output_amount) -> Order:
+    def create_order(
+        self,
+        user: User,
+        status,
+        flag,
+        pair_symbol,
+        input_amount,
+        output_amount,
+    ) -> Order:
         if status.lower() not in ["finished", "active", "draft"]:
             raise Exception(f"Invalid status")
 
@@ -108,9 +116,7 @@ class DatabaseHandler:
             except Exception as err:
                 order.delete()
                 raise Exception(f"Execute order failed: {err}")
-            print(
-                f"Created and Executed order id: {order.id}, for user: {user.email}"
-            )
+            print(f"Created and Executed order id: {order.id}, for user: {user.email}")
         else:
             print(f"Created order id: {order.id}, for user: {user.email}")
             try:
@@ -149,8 +155,7 @@ class DatabaseHandler:
 
         if order.status != "finished":
             order.update(status="finished")
-            print(
-                f"Executed order id: {order.id}, for user: {order.user_email}")
+            print(f"Executed order id: {order.id}, for user: {order.user_email}")
 
     def cancel_order(self, order: Order, user: User = None):
         if user and order.user_email != user.email:
@@ -173,8 +178,23 @@ class DatabaseHandler:
 
     # Database | Execution | Trigger
 
-    def create_trigger(self, user: User, flag, pair_symbol, input_amount, output_amount, stop_price) -> Trigger:
-        order = self.create_order(user, "draft", flag, pair_symbol, input_amount, output_amount)
+    def create_trigger(
+        self,
+        user: User,
+        flag,
+        pair_symbol,
+        input_amount,
+        output_amount,
+        stop_price,
+    ) -> Trigger:
+        order = self.create_order(
+            user,
+            "draft",
+            flag,
+            pair_symbol,
+            input_amount,
+            output_amount,
+        )
 
         try:
             trigger = Trigger(
@@ -207,9 +227,13 @@ class DatabaseHandler:
                 order.update(status="draft")
                 raise Exception(f"Add order to redis failed: {err}")
 
-        # todo: check rollback
         self.redis_trigger_remove(trigger)
-        trigger.delete()
+        try:
+            trigger.delete()
+        except Exception as err:
+            self.redis_trigger_add(trigger)
+            raise Exception(f"Remove trigger failed: {err}")
+
         print(f"Trigger id: {trigger.id}, has been trigger")
 
     def cancel_trigger(self, trigger: Trigger, user: User = None):
@@ -220,17 +244,22 @@ class DatabaseHandler:
         if order.status == "draft":
             order.delete()
 
-        # todo: check rollback
         self.redis_trigger_remove(trigger)
-        trigger.delete()
-        print(
-            f"Canceled trigger id: {trigger.id}, for user: {trigger.user_email}"
-        )
+        try:
+            trigger.delete()
+        except Exception as err:
+            self.redis_trigger_add(trigger)
+            raise Exception(f"Remove trigger failed: {err}")
+
+        print(f"Canceled trigger id: {trigger.id}, for user: {trigger.user_email}")
 
     # Redis | Order
 
     def redis_order_hashname(self, pair_symbol: str, price: float) -> str:
-        return "::".join(["Matching::Order", pair_symbol, str(price_rounder(pair_symbol, price))])
+        return "::".join([
+            "Matching::Order", pair_symbol,
+            str(price_rounder(pair_symbol, price))
+        ])
 
     def redis_order_remove(self, order: Order):
         hashname = self.redis_order_hashname(order.pair_symbol, order.price())
@@ -295,16 +324,20 @@ class DatabaseHandler:
             sub: Order = buy_orders[0]
             base: Order = sell_orders[0]
 
-        # todo: add rollback
-
+        # execute already have a rollback
         self.execute(sub.id)
 
         if base.input_amount - sub.output_amount != 0:
             # execute partial_base
             base_user = self.find_user(base.user_email)
-            self.create_order(base_user, "finished", base.flag,
-                              base.pair_symbol, sub.output_amount,
-                              sub.input_amount)
+            self.create_order(
+                base_user,
+                "finished",
+                base.flag,
+                base.pair_symbol,
+                sub.output_amount,
+                sub.input_amount,
+            )
 
             # update base
             base_order = self.find_order(base.id)
@@ -320,14 +353,23 @@ class DatabaseHandler:
     # Redis | Trigger
 
     def redis_trigger_hashname(self, pair_symbol: str, price: float) -> str:
-        return "::".join(["Matching::Trigger", pair_symbol, str(price_rounder(pair_symbol, price))])
+        return "::".join([
+            "Matching::Trigger", pair_symbol,
+            str(price_rounder(pair_symbol, price))
+        ])
 
     def redis_trigger_remove(self, trigger: Trigger):
-        hashname = self.redis_trigger_hashname(trigger.pair_symbol, trigger.stop_price)
+        hashname = self.redis_trigger_hashname(
+            trigger.pair_symbol,
+            trigger.stop_price,
+        )
         self.client.hdel(hashname, trigger.id)
 
     def redis_trigger_add(self, trigger: Trigger):
-        hashname = self.redis_trigger_hashname(trigger.pair_symbol, trigger.stop_price)
+        hashname = self.redis_trigger_hashname(
+            trigger.pair_symbol,
+            trigger.stop_price,
+        )
 
         if self.client.hexists(hashname, trigger.id):
             raise Exception("Duplicate trigger")
@@ -336,7 +378,11 @@ class DatabaseHandler:
         pickled_trigger = pickle.dumps(trigger)
         self.client.hset(hashname, trigger.id, pickled_trigger)
 
-    def redis_get_triggers_at(self, pair_symbol: str, price: float) -> List[Trigger]:
+    def redis_get_triggers_at(
+        self,
+        pair_symbol: str,
+        price: float,
+    ) -> List[Trigger]:
         triggers: List[Trigger] = []
         hashname = self.redis_trigger_hashname(pair_symbol, price)
 
