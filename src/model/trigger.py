@@ -1,6 +1,6 @@
 from mongoengine import connect, Document, SequenceField, EmailField, IntField, StringField, FloatField
 from decouple import config
-from model.order import Order
+from model import Order
 
 
 class Trigger(Document):
@@ -19,33 +19,8 @@ class Trigger(Document):
             "stop_price": self.stop_price,
         }
 
-    def order(self):
+    def order(self) -> Order:
         return Order.objects.get(id=self.order_id)
-
-    # for service to call only
-    def trigger(self):
-        order = self.order()
-        if order.status == "draft":
-            # todo: add order to redis
-            
-            order.update(status="active")
-
-        # todo: remove trigger from redis
-        
-        print(f"Trigger id: {self.id}, has been trigger")
-        return self.delete()
-
-    def cancel(self, user_email):
-        if self.user_email != user_email:
-            raise Exception(f"Trigger does not owned by user: {user_email}")
-
-        order = self.order()
-        if order.status == "draft":
-            order.delete()
-
-        # todo: remove trigger from redis
-        
-        return self.delete()
 
 
 # ! temporary: tools to add sections

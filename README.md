@@ -109,3 +109,14 @@
 
 - GET: `/api/info/pairs`
 - GET: `/api/info/orders`
+
+### Service
+
+- POST: `/api/service/update_market`
+
+  ```json
+  body = {
+  "pair_symbol": "",
+  "price": 0,
+  }
+  ```
