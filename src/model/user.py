@@ -1,7 +1,9 @@
+import requests
+import datetime
 from mongoengine import connect, Document, StringField, EmailField, DictField, BinaryField
 from decouple import config
 from model import Order, Trigger
-from utils import map_pair
+from utils import map_pair, percent_change
 
 
 class User(Document):
@@ -11,8 +13,8 @@ class User(Document):
     wallet = DictField(
         # todo: update default
         default={
-            "usdt": 500.0,
-            "btc": 500.0,
+            "usdt": 1000.0,
+            "btc": 0,
             "eth": 0,
             "bnb": 0,
             "xrp": 0,
@@ -30,6 +32,9 @@ class User(Document):
         data = self.info()
         data.pop('password', None)
         data["available_wallet"] = self.available_wallet()
+        data["total_balance_usdt"] = self.total_balance_usdt()
+        data["total_percent_change"] = self.total_percent_change()
+        data["wallet_percent_change"] = self.wallet_percent_change()
         data["orders"] = self.orders()
         data["triggers"] = self.triggers()
         return data
@@ -53,7 +58,8 @@ class User(Document):
 
     def available_wallet(self):
         active_status = ['active', 'draft']
-        active_orders = list(filter(lambda d: d['status'] in active_status, self.orders()))
+        active_orders = list(
+            filter(lambda d: d['status'] in active_status, self.orders()))
 
         available_wallet = self.wallet.copy()
         for order in active_orders:
@@ -66,6 +72,43 @@ class User(Document):
         available = self.available_wallet()
         available_amount = available[token_symbol]
         return available_amount > 0 and available_amount >= amount
+
+    def total_balance_usdt(self):
+        URL = "https://api.binance.com/api/v3/ticker/price?symbol="
+
+        wallet = self.wallet.copy()
+        total_usdt = 0
+
+        for token in wallet.keys():
+            if token == 'usdt':
+                total_usdt += wallet[token]
+            else:
+                symbol = token.upper() + "USDT"
+                data = requests.get(URL + symbol).json()
+                total_usdt += float(data['price']) * wallet[token]
+
+        return total_usdt
+
+    def total_percent_change(self):
+        return percent_change(1000, self.total_balance_usdt())
+
+    def wallet_percent_change(self):
+        wallet_before = self.wallet.copy()
+        seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
+        finished_orders = list(
+            filter(lambda d: (d['status'] == "finished") and (datetime.datetime.fromisoformat(d["timestamp"]) >= seven_days_ago), self.orders()))
+
+        for order in finished_orders:
+            input_token, output_token = map_pair(order['flag'], order['pair_symbol'])
+            wallet_before[input_token] -= order['input_amount']
+            wallet_before[output_token] += order['output_amount']
+
+        wallet_after = self.wallet.copy()
+        wallet_change = {}
+        for token in wallet_after.keys():
+            wallet_change[token] = percent_change(wallet_before[token], wallet_after[token])
+
+        return wallet_change
 
 
 # ! temporary: just for testing
