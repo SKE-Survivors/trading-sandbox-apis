@@ -19,27 +19,26 @@
 ### Auth
 
 - GET: `/api/auth/logout?email=[email]&token=[token]` (not supposed to be, but easier)
-- GET: `/api/auth/check?email=[email]&token=[token]`
 
 - Manual
 
   - POST: `/api/auth/signup`
 
     ```json
-    body = {
+    {
       "email": "",
       "username": "",
       "password": "",
-      "confirm-password": "",
+      "confirm-password": ""
     }
     ```
 
   - POST: `/api/auth/login`
 
     ```json
-    body = {
+    {
       "email": "",
-      "password": "",
+      "password": ""
     }
     ```
 
@@ -54,10 +53,10 @@
 - PUT: `/api/auth/user?email=[email]&token=[token]`
 
   ```json
-  body = {
+  {
     "username": "",
     "password": "",
-    "confirm-password": "",
+    "confirm-password": ""
   }
   ```
 
@@ -68,40 +67,40 @@
 - POST: `/api/trading/order?email=[email]&token=[token]` (create order, execute if status=="finished")
 
   ```json
-  body = {
+  {
     "status": "",
     "flag": "",
     "pair_symbol": "",
     "input_amount": 0,
-    "output_amount": 0,
+    "output_amount": 0
   }
   ```
 
 - DELETE: `/api/trading/order?email=[email]&token=[token]` (cancel non-finished order)
 
   ```json
-  body = {
-    "order_id": 0,
+  {
+    "order_id": 0
   }
   ```
 
 - POST: `/api/trading/trigger?email=[email]&token=[token]` (create trigger, and its order as draft)
 
   ```json
-  body = {
+  {
     "flag": "",
     "pair_symbol": "",
     "input_amount": 0,
     "output_amount": 0,
-    "stop_price": 0,
+    "stop_price": 0
   }
   ```
 
 - DELETE: `/api/trading/trigger?email=[email]&token=[token]` (delete trigger, and its non-finished order)
 
   ```json
-  body = {
-    "trigger_id": 0,
+  {
+    "trigger_id": 0
   }
   ```
 
@@ -115,8 +114,8 @@
 - POST: `/api/service/update_market`
 
   ```json
-  body = {
-  "pair_symbol": "",
-  "price": 0,
+  {
+    "pair_symbol": "",
+    "price": 0
   }
   ```
