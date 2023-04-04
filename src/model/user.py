@@ -100,8 +100,8 @@ class User(Document):
 
         for order in finished_orders:
             input_token, output_token = map_pair(order['flag'], order['pair_symbol'])
-            wallet_before[input_token] -= order['input_amount']
-            wallet_before[output_token] += order['output_amount']
+            wallet_before[input_token] += order['input_amount']
+            wallet_before[output_token] -= order['output_amount']
 
         wallet_after = self.wallet.copy()
         wallet_change = {}
