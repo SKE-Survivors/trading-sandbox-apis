@@ -116,8 +116,8 @@ def login():
 def logout():
     email = request.args.get("email")
 
-    if not dbh.find_user(email):
-        return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
+    # if not dbh.find_user(email):
+    #     return build_response(status_code=400, body=FAILED_USER_NOT_EXIST)
 
     sh.remove_session(email)
     body = {"STATUS": "SUCCESS", "MESSAGE": f"Logout successfully"}
