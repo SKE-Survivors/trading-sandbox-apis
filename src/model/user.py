@@ -74,7 +74,13 @@ class User(Document):
         return available_amount > 0 and available_amount >= amount
 
     def total_balance_usdt(self):
-        URL = "https://api.binance.com/api/v3/ticker/price?symbol="
+        URL = "https://api.coincap.io/v2/assets/"
+        coincap_key = {
+            "btc": "bitcoin",
+            "eth": "ethereum",
+            "bnb": "binance-coin",
+            "xrp": "xrp",
+        }
 
         wallet = self.wallet.copy()
         total_usdt = 0
@@ -83,9 +89,8 @@ class User(Document):
             if token == 'usdt':
                 total_usdt += wallet[token]
             else:
-                symbol = token.upper() + "USDT"
-                data = requests.get(URL + symbol).json()
-                total_usdt += float(data['price']) * wallet[token]
+                data = requests.get(URL + coincap_key[token]).json()
+                total_usdt += float(data['data']['priceUsd']) * wallet[token]
 
         return total_usdt
 
