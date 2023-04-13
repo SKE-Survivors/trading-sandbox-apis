@@ -1,5 +1,7 @@
+from flask import redirect
 from handler import DatabaseHandler, SessionHandler
-from utils import build_response
+from utils import build_response, build_url
+from decouple import config
 
 
 def handle_authorize(remote, _token, user_info):
@@ -36,4 +38,9 @@ def handle_authorize(remote, _token, user_info):
             "token": token
         }
     }
-    return build_response(status_code=201, body=body)
+
+    url = config('FRONTEND_URL', None)
+    if url:
+        return redirect(build_url(url, body["MESSAGE"]))
+    else:
+        return build_response(status_code=201, body=body)
