@@ -98,20 +98,19 @@ class User(Document):
         return percent_change(1000, self.total_balance_usdt())
 
     def wallet_percent_change(self):
-        wallet_before = self.wallet.copy()
         seven_days_ago = datetime.datetime.now() - datetime.timedelta(days=7)
         finished_orders = list(
             filter(lambda d: (d['status'] == "finished") and (datetime.datetime.fromisoformat(d["timestamp"]) >= seven_days_ago), self.orders()))
 
+        change = {"usdt": 0, "btc": 0, "eth": 0, "bnb": 0, "xrp": 0}
         for order in finished_orders:
             input_token, output_token = map_pair(order['flag'], order['pair_symbol'])
-            wallet_before[input_token] += order['input_amount']
-            wallet_before[output_token] -= order['output_amount']
+            change[input_token] += order['input_amount']
+            change[output_token] -= order['output_amount']
 
-        wallet_after = self.wallet.copy()
         wallet_change = {}
-        for token in wallet_after.keys():
-            wallet_change[token] = percent_change(wallet_before[token], wallet_after[token])
+        for token in self.wallet.keys():
+            wallet_change[token] = percent_change(self.wallet[token]+change[token], self.wallet[token])
 
         return wallet_change
 
